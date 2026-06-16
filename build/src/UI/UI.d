@@ -198,7 +198,7 @@ build/./src/UI/UI.o: src/UI/UI.cpp src/UI/UI.hpp \
  src/UI/../GLFW/../../includes/glm/gtc/type_ptr.inl \
  src/UI/../GLFW/../Camera/Camera.hpp \
  src/UI/../GLFW/../Camera/../../includes/glad/glad.h \
- src/UI/../GLFW/../misc/Settings.hpp
+ src/UI/../GLFW/../misc/Settings.hpp src/UI/../misc/stb_image.h
 src/UI/UI.hpp:
 src/UI/../../includes/imgui/imgui.h:
 src/UI/../../includes/imgui/imconfig.h:
@@ -402,3 +402,4 @@ src/UI/../GLFW/../../includes/glm/gtc/type_ptr.inl:
 src/UI/../GLFW/../Camera/Camera.hpp:
 src/UI/../GLFW/../Camera/../../includes/glad/glad.h:
 src/UI/../GLFW/../misc/Settings.hpp:
+src/UI/../misc/stb_image.h:

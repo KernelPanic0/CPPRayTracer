@@ -14,7 +14,7 @@ GraphicsManager::~GraphicsManager() {
 
 void GraphicsManager::RenderObjects(const std::pair<glm::mat4, glm::mat4> viewProjection, glm::vec3 cameraPos, Window &window, UI userInterface) // TEMPORARY TEST
 {
-  glClearColor(0.09f, 0.09f, 0.43f, 1.0f);
+  // glClearColor(0.09f, 0.09f, 0.43f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glEnable(GL_DEPTH_TEST);
 
