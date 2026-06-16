@@ -36,63 +36,72 @@ void UI::Render(ImTextureID texture) {
                              ImGuiWindowFlags_NoMove |
                              ImGuiWindowFlags_NoSavedSettings |
                              ImGuiWindowFlags_NoBringToFrontOnFocus;
-    ImGui::SetNextWindowBgAlpha(1.0f);
+
     ImGui::Begin("##fullscreen", nullptr, flags);
 
-    ImGui::BeginTabBar("Viewport");
-    if (ImGui::BeginTabItem("Viewport")) {
+    unsigned char hi[1200 * 1200];
 
-      unsigned char hi[1200 * 1200];
+    for (int x = 0; x < 400; x++) {
+      for (int y = 0; y < 1200; y++) {
+        int pixelIndex = x * 3;
 
-      for (int x = 0; x < 400; x++) {
-        for (int y = 0; y < 1200; y++) {
-          int pixelIndex = x * 3;
-
-          hi[pixelIndex + (1200 * y)] = x * 255 / 400; // R
-          hi[(pixelIndex + 1) + (1200 * y)] = 0;       // G
-          hi[(pixelIndex + 2) + (1200 * y)] = 255;     // B
-        }
+        hi[pixelIndex + (1200 * y)] = x * 255 / 400; // R
+        hi[(pixelIndex + 1) + (1200 * y)] = 0;       // G
+        hi[(pixelIndex + 2) + (1200 * y)] = 0;       // B
       }
-
-      printf("%d", hi[1]);
-      std::cout << hi[2] << std::endl;
-
-      GLuint tx;
-      glGenTextures(1, &tx);
-      glBindTexture(GL_TEXTURE_2D, tx);
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 400, 400, 0, GL_RGB, GL_UNSIGNED_BYTE, hi);
-
-      ImGui::Image((ImTextureID)tx, ImVec2(400, 400));
-      ImGui::EndTabItem();
     }
-    if (ImGui::BeginTabItem("Info")) {
-      ImGui::Text("Hi");
-      ImGui::Text("Hello this is a test %d", 123);
-      ImGui::Text("Camera position: ");
-      ImGui::Text("FPS: %d", (int)(1 / Settings::deltaTime));
 
-      ImGui::Image(texture, ImVec2(320, 240), ImVec2(0, 1), ImVec2(1, 0));
+    GLuint tx;
+    glGenTextures(1, &tx);
+    glBindTexture(GL_TEXTURE_2D, tx);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 400, 400, 0, GL_RGB, GL_UNSIGNED_BYTE, hi);
 
-      ImGui::EndTabItem();
-    }
-    ImGui::EndTabBar();
+    ImGui::BeginChild("Viewport", ImVec2(ImGui::GetContentRegionAvail().x - 230, 0), true);
+    ImGui::Text("Viewport");
+    ImGui::Image((ImTextureID)(intptr_t)tx, ImGui::GetContentRegionAvail());
+    ImGui::EndChild();
 
-    // // std::cout << camera->cameraPos.x << "\n";
-    // ImGui::Text("x: %f", camera->cameraPos.x);
-    // ImGui::Text("y: %f", camera->cameraPos.y);
-    // ImGui::Text("z: %f", camera->cameraPos.z);
+    ImGui::SameLine();
+
+    // Right: Controls
+    ImGui::BeginChild("Controls", ImVec2(220, 0), true);
+
+    ImGui::Text("Rendering...");
+    ImGui::Separator();
+
+    ImGui::Text("Progress");
+    ImGui::ProgressBar(0.5); // float 0.0 - 1.0
+
+    ImGui::Separator();
+    ImGui::Text("Settings");
+    // ImGui::SliderInt("Samples", nullptr, 1, 64);
+    // ImGui::SliderInt("Max Depth", nullptr, 1, 50);
+
+    ImGui::Separator();
+    ImGui::Text("Stats");
+    ImGui::Text("Resolution: %dx%d", 200, 200);
+    ImGui::Text("Rays cast: %dk", 5 / 1000);
+
+    ImGui::Separator();
+    // if (ImGui::Button("Reset Accumulation", ImVec2(-1, 0))) {
+    //   // ClearAccumulationBuffer();
+    // }
+    // if (ImGui::Button("Save to PPM", ImVec2(-1, 0))) {
+
+    //   // SavePPM();
+    // }
+    // if (ImGui::Button("Stop Render", ImVec2(-1, 0))) {
+
+    //   // StopRender();
+    // }
+
+    ImGui::EndChild();
     // ImGui::ShowDemoWindow(&Settings::uiVisible);
-
-    ImGui::End();
   }
+
+  ImGui::End();
 
   // ImGui rendering
   ImGui::Render();
-  int display_w, display_h;
-  glfwGetFramebufferSize(pWindow->window, &display_w, &display_h);
-  glViewport(0, 0, display_w, display_h);
-  // ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-  // glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
-  // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
