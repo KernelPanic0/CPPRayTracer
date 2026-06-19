@@ -15,6 +15,7 @@ SRC := ./src/main.cpp \
     ./src/Engine/Graphics/GraphicsManager.cpp \
     ./src/Engine/Graphics/Buffers.cpp \
     ./src/UI/UI.cpp \
+    ./src/UI/ImageViewer.cpp \
     ./includes/imgui/imgui.cpp \
     ./includes/imgui/imgui_draw.cpp \
     ./includes/imgui/imgui_demo.cpp \

@@ -1,6 +1,5 @@
 #include "UI.hpp"
-#include "../misc/stb_image.h"
-#include <iostream>
+#define IM_MAX(A, B) (((A) >= (B)) ? (A) : (B))
 
 UI::UI(const std::shared_ptr<Window> &window) {
   this->pWindow = window;
@@ -58,7 +57,13 @@ void UI::Render(ImTextureID texture) {
 
     ImGui::BeginChild("Viewport", ImVec2(ImGui::GetContentRegionAvail().x - 230, 0), true);
     ImGui::Text("Viewport");
-    ImGui::Image((ImTextureID)(intptr_t)tx, ImGui::GetContentRegionAvail());
+    int tex_w = 400;
+    int tex_h = 400;
+    ImageViewer::DrawOptions();
+    ImVec2 canvas_size = ImGui::GetContentRegionAvail();
+    ImVec2 canvas_min_size = ImGui::IsWindowAppearing() ? ImVec2(3.0f * tex_w, 4.0f * tex_h) : ImVec2(1.0f, 1.0f);
+    canvas_size = ImVec2(IM_MAX(canvas_size.x, canvas_min_size.x), IM_MAX(canvas_size.y, canvas_min_size.y));
+    ImageViewer::DrawCanvas(canvas_size, (ImTextureID)(intptr_t)tx, tex_w, tex_h);
     ImGui::EndChild();
 
     ImGui::SameLine();
