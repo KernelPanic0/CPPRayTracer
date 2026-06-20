@@ -1,9 +1,15 @@
 #include "Vector.hpp"
 
-Vector3::Vector3(double x, double y, double z) {
+Triplet::Triplet(double x, double y, double z) {
   this->x = x;
   this->y = y;
   this->z = z;
+}
+
+Triplet::Triplet() {
+  this->x = 0;
+  this->y = 0;
+  this->z = 0;
 }
 
 double Vector3::Length() {
@@ -14,18 +20,24 @@ double Vector3::LengthSquared() {
   return x * x + y * y + z * z;
 }
 
-Vector3 Vector3::Random() {
+Triplet Triplet::Random() {
   double x = Constants::RandomDouble();
   double y = Constants::RandomDouble();
   double z = Constants::RandomDouble();
-  return Vector3(x, y, z);
+  return Triplet(x, y, z);
 }
 
-Vector3 Vector3::Random(double min, double max) {
+Triplet Triplet::Random(double min, double max) {
   double x = Constants::RandomDouble() * (max - min) + min;
   double y = Constants::RandomDouble() * (max - min) + min;
   double z = Constants::RandomDouble() * (max - min) + min;
-  return Vector3(x, y, z);
+  return Triplet(x, y, z);
+}
+
+Vector3::Vector3(Triplet t) {
+  this->x = t.x;
+  this->y = t.y;
+  this->z = t.z;
 }
 
 Vector3 Vector3::RandomInUnitSphere() {
@@ -42,7 +54,7 @@ Vector3 Vector3::RandomUnitVector() {
   return UnitVector(RandomInUnitSphere());
 }
 
-bool Vector3::NearZero() {
+bool Triplet::NearZero() {
   double s = 1e-8;
   return (x < s) && (y < s) && (z < s);
 }
