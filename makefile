@@ -14,6 +14,7 @@ SRC := ./src/main.cpp \
 	./src/Engine/Engine.cpp \
     ./src/Engine/Graphics/GraphicsManager.cpp \
     ./src/Engine/Graphics/Buffers.cpp \
+    ./src/Engine/Raytracing/*.cpp \
     ./src/UI/UI.cpp \
     ./src/UI/ImageViewer.cpp \
     ./includes/imgui/imgui.cpp \

@@ -9,8 +9,8 @@ private:
   static std::uniform_real_distribution<double> dist;
 
 public:
-  static const double infinity = std::numeric_limits<double>::max();
-  static const double pi = M_PI;
+  static constexpr double infinity = std::numeric_limits<double>::max();
+  static constexpr double pi = M_PI;
 
   static const double DegreesToRadians(double degrees) {
     return degrees * pi / 180.0;
