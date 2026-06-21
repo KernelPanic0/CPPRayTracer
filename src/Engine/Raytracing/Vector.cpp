@@ -34,6 +34,12 @@ Triplet Triplet::Random(double min, double max) {
   return Triplet(x, y, z);
 }
 
+Vector3::Vector3() {
+  this->x = 0;
+  this->y = 0;
+  this->z = 0;
+}
+
 Vector3::Vector3(Triplet t) {
   this->x = t.x;
   this->y = t.y;

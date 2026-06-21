@@ -1,4 +1,5 @@
 #pragma once
+#include "Interval.hpp"
 #include "Ray.hpp"
 #include "Vector.hpp"
 
@@ -9,16 +10,10 @@ struct HitRecord {
   double t;
   bool frontFace;
 
-  void SetFaceNormal(Ray ray, Vector3 outwardNormal) {
-    // The parameter outward should be of unit length.
-    frontFace = Vector3::Dot(ray.direction, outwardNormal) < 0;
-    normal = frontFace ? outwardNormal : -outwardNormal;
-  }
+  void SetFaceNormal(Ray ray, Vector3 outwardNormal);
 };
 
 struct Hittable {
 public:
-  virtual bool Hit(Ray ray, Interval rayT, ref HitRecord hitRecord) {
-    return false;
-  }
+  virtual bool Hit(Ray ray, Interval rayT, HitRecord &hitRecord);
 };
