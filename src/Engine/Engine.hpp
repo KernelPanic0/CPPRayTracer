@@ -5,7 +5,7 @@
 class Engine {
 private:
   std::shared_ptr<Window> pWindow;
-  std::shared_ptr<GraphicsManager> pGraphicsManager;
+  std::unique_ptr<GraphicsManager> pGraphicsManager;
   std::unique_ptr<UI> UserInterface;
 
 public:

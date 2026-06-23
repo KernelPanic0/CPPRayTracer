@@ -11,9 +11,9 @@
 class UI {
 private:
   bool visible = true;
-  std::shared_ptr<Window> pWindow;
+  Window &pWindow;
 
 public:
-  UI(const std::shared_ptr<Window> &window);
+  UI(Window &window);
   void Render(ImTextureID texture);
 };

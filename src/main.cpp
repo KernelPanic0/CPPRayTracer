@@ -8,7 +8,7 @@
 int main() {
   Engine engine;
 
-  // rtx
+  // ray tracing
   DiffuseLight diffuseLight = DiffuseLight(Triplet(1, 1, 1), 3);
   Sphere lightSource(Vector3(0, 2.8, -2), 1, &diffuseLight);
 

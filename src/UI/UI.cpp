@@ -1,8 +1,7 @@
 #include "UI.hpp"
 #define IM_MAX(A, B) (((A) >= (B)) ? (A) : (B))
 
-UI::UI(const std::shared_ptr<Window> &window) {
-  this->pWindow = window;
+UI::UI(Window &window) : pWindow(window) {
   // Camera *camera = static_cast<Camera *>(glfwGetWindowUserPointer(window->window));
   // this->camera = camera;
 
@@ -14,7 +13,7 @@ UI::UI(const std::shared_ptr<Window> &window) {
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
   io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // Enable Keyboard Controls
 
-  ImGui_ImplGlfw_InitForOpenGL(window->window, true);
+  ImGui_ImplGlfw_InitForOpenGL(window.window, true);
   ImGui_ImplOpenGL3_Init("#version 330");
   ImGui::StyleColorsDark();
 }
