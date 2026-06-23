@@ -34,6 +34,12 @@ Triplet Triplet::Random(double min, double max) {
   return Triplet(x, y, z);
 }
 
+Vector3::Vector3(double x, double y, double z) {
+  this->x = x;
+  this->y = y;
+  this->z = z;
+}
+
 Vector3::Vector3() {
   this->x = 0;
   this->y = 0;
@@ -93,6 +99,17 @@ Vector3 Vector3::operator+(Vector3 otherVector) {
   return Vector3(x + otherVector.x, y + otherVector.y, z + otherVector.z);
 }
 
+Triplet Triplet::operator+(const Triplet &otherTriplet) const {
+  return Triplet(x + otherTriplet.x, y + otherTriplet.y, z + otherTriplet.z);
+}
+
+Triplet &Triplet::operator+=(const Triplet &otherTriplet) {
+  x += otherTriplet.x;
+  y += otherTriplet.y;
+  z += otherTriplet.z;
+  return *this;
+}
+
 // -
 Vector3 Vector3::operator-(Vector3 otherVector) const {
   return Vector3(x - otherVector.x, y - otherVector.y, z - otherVector.z);
@@ -107,8 +124,16 @@ Vector3 Vector3::operator*(Vector3 otherVector) {
   return Vector3(x * otherVector.x, y * otherVector.y, z * otherVector.z);
 }
 
+Triplet Triplet::operator*(const Triplet &otherVector) const {
+  return Triplet(x * otherVector.x, y * otherVector.y, z * otherVector.z);
+}
+
 Vector3 Vector3::operator*(double t) {
   return Vector3(x * t, y * t, z * t);
+}
+
+Triplet Triplet::operator*(double t) {
+  return Triplet(x * t, y * t, z * t);
 }
 
 Vector3 operator*(double t, const Vector3 &v) {

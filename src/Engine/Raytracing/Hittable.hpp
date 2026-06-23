@@ -1,12 +1,13 @@
 #pragma once
 #include "Interval.hpp"
+#include "Material.hpp"
 #include "Ray.hpp"
 #include "Vector.hpp"
 
 struct HitRecord {
   Vector3 point;
   Vector3 normal;
-  Material material;
+  Material *material;
   double t;
   bool frontFace;
 
@@ -14,6 +15,14 @@ struct HitRecord {
 };
 
 struct Hittable {
-public:
   virtual bool Hit(Ray ray, Interval rayT, HitRecord &hitRecord);
+};
+
+struct HittableList : Hittable {
+  std::vector<Hittable *> objects;
+
+  HittableList(Hittable &objectToAdd);
+  HittableList();
+  void Add(Hittable &objectToAdd);
+  bool Hit(Ray ray, Interval rayT, HitRecord &hitRecord) override;
 };

@@ -12,7 +12,6 @@ class UI {
 private:
   bool visible = true;
   std::shared_ptr<Window> pWindow;
-  Camera *camera;
 
 public:
   UI(const std::shared_ptr<Window> &window);

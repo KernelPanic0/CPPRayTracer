@@ -23,7 +23,7 @@ void ProcessInput(GLFWwindow *window, bool &showUi) {
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
 
-  Camera *camera = static_cast<Camera *>(glfwGetWindowUserPointer(window));
+  //   Camera *camera = static_cast<Camera *>(glfwGetWindowUserPointer(window));
   // Movement
   // const float cameraSpeed = 15.05f * Settings::deltaTime; // adjust accordingly
   // if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)

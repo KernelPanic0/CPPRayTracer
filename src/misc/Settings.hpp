@@ -1,4 +1,5 @@
 #pragma once
+#include "..//..//includes/glad/glad.h"
 #include <GLFW/glfw3.h>
 
 namespace Settings {

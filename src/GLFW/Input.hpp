@@ -1,6 +1,7 @@
 #pragma once
+#include "../../includes/glad/glad.h"
 #include "../../includes/imgui/imgui.h"
-#include "../Camera/Camera.hpp"
+// #include "../Camera/Camera.hpp"
 #include "../misc/Settings.hpp"
 #include <GLFW/glfw3.h> // System-installed GLFW
 

@@ -3,7 +3,7 @@
 #include "../../includes/glm/glm.hpp"
 #include "../../includes/glm/gtc/matrix_transform.hpp"
 #include "../../includes/glm/gtc/type_ptr.hpp"
-#include "../Camera/Camera.hpp"
+// #include "../Camera/Camera.hpp"
 #include "../misc/Settings.hpp"
 #include <GLFW/glfw3.h> // System-installed GLFW
 

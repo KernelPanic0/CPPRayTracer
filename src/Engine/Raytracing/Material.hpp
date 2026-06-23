@@ -1,14 +1,15 @@
 #pragma once
-#include "Hittable.hpp"
 #include "Ray.hpp"
+
+struct HitRecord; // forward declaration - no include needed
 
 class Material {
 public:
-  virtual bool Scatter(Ray rayIn, HitRecord hitRecord, Triplet &attenuation, Ray &scattered);
+  virtual bool Scatter(Ray rayIn, HitRecord hitRecord, Triplet &attenuation, Ray &scattered) = 0;
   virtual Triplet Emitted(double u, double v, Vector3 point); // Color
 };
 
-class Lambertian : Material {
+class Lambertian : public Material {
 private:
   Triplet albedo;
 
@@ -18,7 +19,7 @@ public:
   bool Scatter(Ray rayIn, HitRecord hitRecord, Triplet &attenuation, Ray &scattered) override;
 };
 
-class Metal : Lambertian {
+class Metal : public Lambertian {
 private:
   Triplet albedo;
   double fuzz;
@@ -29,7 +30,7 @@ public:
   bool Scatter(Ray rayIn, HitRecord hitRecord, Triplet &attenuation, Ray &scattered) override;
 };
 
-class DiffuseLight : Material {
+class DiffuseLight : public Material {
 private:
   Triplet emit;
   double intensity;

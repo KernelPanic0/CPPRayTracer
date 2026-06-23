@@ -19,6 +19,7 @@ struct Triplet {
   // Operator overloads
   // +
   Triplet operator+(const Triplet &otherTriplet) const;
+  Triplet &operator+=(const Triplet &otherTriplet);
   // -
   Triplet operator-(const Triplet &otherTriplet) const;
   Triplet operator-();

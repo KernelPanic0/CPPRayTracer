@@ -1,8 +1,10 @@
 #include "Material.hpp"
+#include "Hittable.hpp"
+#include <iostream>
 
-bool Material::Scatter(Ray rayIn, HitRecord hitRecord, Triplet &attenuation, Ray &scattered) {
-  return true;
-}
+// bool Material::Scatter(Ray rayIn, HitRecord hitRecord, Triplet &attenuation, Ray &scattered) {
+//   return true;
+// }
 
 Triplet Material::Emitted(double u, double v, Vector3 point) { // Color
   return Triplet(0, 0, 0);

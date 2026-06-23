@@ -1,12 +1,11 @@
 #pragma once
-
 #include "../../../includes/glad/glad.h"
+#include <GLFW/glfw3.h> // System-installed GLFW
 #include "../../../includes/glm/glm.hpp"
 #include "../../../includes/glm/gtc/matrix_transform.hpp"
 #include "../../../includes/glm/gtc/type_ptr.hpp"
 #include "../../GLFW/Window.hpp"
 #include "../../misc/shader_util.h"
-#include <GLFW/glfw3.h> // System-installed GLFW
 #include <vector>
 
 class VertexArray {

@@ -1,5 +1,11 @@
 CXX := g++
+DEBUG ?= 1
+
+ifeq ($(DEBUG),1)
+CXXFLAGS := -std=c++20 -g -O0 -fno-omit-frame-pointer -I./includes -I./includes/imgui -I./src/ -MMD -MP
+else
 CXXFLAGS := -std=c++20 -O2 -I./includes -I./includes/imgui -I./src/ -MMD -MP
+endif
 LDFLAGS := -lglfw -lGL -ldl -lX11 -lpthread -lXrandr -lXi
 BUILD_DIR := ./build
 TARGET := $(BUILD_DIR)/raytracer
@@ -9,12 +15,18 @@ SRC := ./src/main.cpp \
     ./src/misc/stb_image.cpp \
     ./src/misc/shader_util.cpp \
     ./src/GLFW/Window.cpp \
-    ./src/Camera/Camera.cpp \
     ./src/GLFW/Input.cpp \
 	./src/Engine/Engine.cpp \
     ./src/Engine/Graphics/GraphicsManager.cpp \
     ./src/Engine/Graphics/Buffers.cpp \
-    ./src/Engine/Raytracing/*.cpp \
+	./src/Engine/Raytracing/Vector.cpp \
+	./src/Engine/Raytracing/Sphere.cpp \
+	./src/Engine/Raytracing/Camera.cpp \
+	./src/Engine/Raytracing/Constants.cpp \
+	./src/Engine/Raytracing/Hittable.cpp \
+	./src/Engine/Raytracing/Interval.cpp \
+	./src/Engine/Raytracing/Material.cpp \
+	./src/Engine/Raytracing/Ray.cpp \
     ./src/UI/UI.cpp \
     ./src/UI/ImageViewer.cpp \
     ./includes/imgui/imgui.cpp \
