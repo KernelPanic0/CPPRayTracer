@@ -13,6 +13,7 @@ public:
   int imageWidth = 400;
   int samplesPerPixel = 50;
   int maxDepth = 40;
+  std::vector<int> pixels;
   Triplet backgroundColor;
 
   Camera(Hittable &world);

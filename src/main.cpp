@@ -8,23 +8,5 @@
 int main() {
   Engine engine;
 
-  // ray tracing
-  DiffuseLight diffuseLight = DiffuseLight(Triplet(1, 1, 1), 3);
-  Sphere lightSource(Vector3(0, 2.8, -2), 1, &diffuseLight);
-
-  Lambertian mSurface(Triplet(1, 1, 1));
-  Sphere floor(Vector3(0, -50002, -5), 50000, &mSurface);
-
-  Metal mSphere(Triplet(0.2705, 0.356, 1), 0.4);
-  Sphere middleSphere(Vector3(0, -1.5, -2), .5, &mSphere);
-
-  HittableList world;
-  world.Add(lightSource);
-  world.Add(floor);
-  world.Add(middleSphere);
-
-  Camera camera(world);
-  camera.Render();
-
   engine.MainLoop();
 }
