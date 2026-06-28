@@ -1,19 +1,19 @@
 #include "Engine.hpp"
 
-Engine::Engine() : pWindow(std::make_shared<Window>()), pGraphicsManager(std::make_unique<GraphicsManager>()), pUserInterface(std::make_unique<UI>(*pWindow)), pRtCamera(std::make_unique<Camera>()), pRaytracingScene(std::make_unique<HittableList>()) {
+Engine::Engine() : pWindow(std::make_shared<Window>()), pGraphicsManager(std::make_unique<GraphicsManager>()), pUserInterface(std::make_unique<UI>(*pWindow)), pRaytracingScene(new HittableList()), pRtCamera(std::make_unique<Camera>(*pRaytracingScene)) {
   // ray tracing
-  DiffuseLight diffuseLight = DiffuseLight(Triplet(1, 1, 1), 3);
-  Sphere lightSource(Vector3(0, 2.8, -2), 1, &diffuseLight);
+  auto diffuseLight = std::make_shared<DiffuseLight>(Triplet(1, 1, 1), 3);
+  auto lightSource = std::make_shared<Sphere>(Vector3(0, 2.8, -2), 1, diffuseLight);
 
-  Lambertian mSurface(Triplet(1, 1, 1));
-  Sphere floor(Vector3(0, -50002, -5), 50000, &mSurface);
+  auto mSurface = std::make_shared<Lambertian>(Triplet(1, 1, 1));
+  auto floor = std::make_shared<Sphere>(Vector3(0, -50002, -5), 50000, mSurface);
 
-  Metal mSphere(Triplet(0.2705, 0.356, 1), 0.4);
-  Sphere middleSphere(Vector3(0, -1.5, -2), .5, &mSphere);
+  auto mSphere = std::make_shared<Metal>(Triplet(0.2705, 0.356, 1), 0.4);
+  auto middleSphere = std::make_shared<Sphere>(Vector3(0, -1.5, -2), .5, mSphere);
 
-  pRaytracingScene->Add(lightSource);
-  pRaytracingScene->Add(floor);
-  pRaytracingScene->Add(middleSphere);
+  pRaytracingScene->Add(*lightSource);
+  pRaytracingScene->Add(*floor);
+  pRaytracingScene->Add(*middleSphere);
 
   pRtCamera->Render();
 }

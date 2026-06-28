@@ -5,10 +5,7 @@ Camera::Camera(Hittable &world) : world(world) {}
 void Camera::Render(const std::string &outputFile) {
   InitialiseProperties();
 
-  std::ofstream file(outputFile);
-  file << "P3\n"
-       << imageWidth << " " << (int)imageHeight << "\n255\n";
-
+#pragma omp parallel for schedule(dynamic)
   for (int y = 0; y < (int)imageHeight; y++) {
     std::cout << "\rRows remaining: " << ((int)imageHeight - y) << " " << std::flush;
 
@@ -21,13 +18,19 @@ void Camera::Render(const std::string &outputFile) {
       double r = ComputeColor(pixelColor.x, samplesPerPixel);
       double g = ComputeColor(pixelColor.y, samplesPerPixel);
       double b = ComputeColor(pixelColor.z, samplesPerPixel);
-      file << (int)r << " " << (int)g << " " << (int)b << "\n";
+
+      int index = (y * imageWidth + x) * 3;
+      pixels[index + 0] = r;
+      pixels[index + 1] = g;
+      pixels[index + 2] = b;
     }
   }
-  std::cout << "\nDone! Output written to " << outputFile << "\n";
+  std::cout << "\nDone!" << "\n";
 }
 
 void Camera::InitialiseProperties() {
+  pixels.resize(imageWidth * (int)imageHeight * 3);
+
   imageHeight = imageWidth / aspectRatio;
   imageHeight = (imageHeight < 1) ? 1 : imageHeight;
   centre = Vector3(0, 0, 0);

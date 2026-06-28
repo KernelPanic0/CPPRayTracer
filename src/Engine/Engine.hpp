@@ -15,7 +15,7 @@ private:
   std::unique_ptr<GraphicsManager> pGraphicsManager;
   std::unique_ptr<UI> pUserInterface;
   std::unique_ptr<Camera> pRtCamera;
-  std::unique_ptr<HittableList> pRaytracingScene;
+  HittableList *pRaytracingScene;
 
 public:
   Engine();
