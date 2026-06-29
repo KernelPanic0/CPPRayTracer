@@ -12,12 +12,12 @@ bool Hittable::Hit(Ray ray, Interval rayT, HitRecord &hitRecord) {
 
 HittableList::HittableList() {}
 
-HittableList::HittableList(Hittable &objectToAdd) {
-  objects.push_back(&objectToAdd);
+HittableList::HittableList(std::shared_ptr<Hittable> objectToAdd) {
+  objects.push_back(objectToAdd);
 }
 
-void HittableList::Add(Hittable &objectToAdd) {
-  objects.push_back(&objectToAdd);
+void HittableList::Add(std::shared_ptr<Hittable> objectToAdd) {
+  objects.push_back(objectToAdd);
 };
 
 bool HittableList::Hit(Ray ray, Interval rayT, HitRecord &hitRecord) {
@@ -25,7 +25,7 @@ bool HittableList::Hit(Ray ray, Interval rayT, HitRecord &hitRecord) {
   bool hitAnything = false;
   double closestSoFar = rayT.max;
 
-  for (Hittable *obj : objects) {
+  for (std::shared_ptr<Hittable> obj : objects) {
     if (obj->Hit(ray, Interval(rayT.min, closestSoFar), tempRecord)) {
       hitAnything = true;
       closestSoFar = tempRecord.t;

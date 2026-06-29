@@ -9,9 +9,9 @@ class Sphere : public Hittable {
 private:
   Vector3 centre;
   double radius;
-  Material *material;
+  std::shared_ptr<Material> material;
 
 public:
   bool Hit(Ray ray, Interval rayT, HitRecord &hitRecord) override;
-  Sphere(Vector3 centre, double radius, Material *material);
+  Sphere(Vector3 centre, double radius, std::shared_ptr<Material> material);
 };

@@ -18,7 +18,7 @@ UI::UI(Window &window) : pWindow(window) {
   ImGui::StyleColorsDark();
 }
 
-void UI::Render(ImTextureID texture) {
+void UI::Render(ImTextureID texture, int width, int height) {
   ImGui_ImplOpenGL3_NewFrame();
   ImGui_ImplGlfw_NewFrame();
   // ImGui::SetNextWindowViewport(viewport->ID);
@@ -37,23 +37,6 @@ void UI::Render(ImTextureID texture) {
 
     ImGui::Begin("##fullscreen", nullptr, flags);
 
-    unsigned char hi[1200 * 1200];
-
-    for (int x = 0; x < 400; x++) {
-      for (int y = 0; y < 1200; y++) {
-        int pixelIndex = x * 3;
-
-        hi[pixelIndex + (1200 * y)] = x * 255 / 400; // R
-        hi[(pixelIndex + 1) + (1200 * y)] = 0;       // G
-        hi[(pixelIndex + 2) + (1200 * y)] = 0;       // B
-      }
-    }
-
-    GLuint tx;
-    glGenTextures(1, &tx);
-    glBindTexture(GL_TEXTURE_2D, tx);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 400, 400, 0, GL_RGB, GL_UNSIGNED_BYTE, hi);
-
     ImGui::BeginChild("Viewport", ImVec2(ImGui::GetContentRegionAvail().x - 230, 0), true);
     ImGui::Text("Viewport");
     int tex_w = 400;
@@ -62,7 +45,7 @@ void UI::Render(ImTextureID texture) {
     ImVec2 canvas_size = ImGui::GetContentRegionAvail();
     ImVec2 canvas_min_size = ImGui::IsWindowAppearing() ? ImVec2(3.0f * tex_w, 4.0f * tex_h) : ImVec2(1.0f, 1.0f);
     canvas_size = ImVec2(IM_MAX(canvas_size.x, canvas_min_size.x), IM_MAX(canvas_size.y, canvas_min_size.y));
-    ImageViewer::DrawCanvas(canvas_size, (ImTextureID)(intptr_t)tx, tex_w, tex_h);
+    ImageViewer::DrawCanvas(canvas_size, texture, width, height);
     ImGui::EndChild();
 
     ImGui::SameLine();

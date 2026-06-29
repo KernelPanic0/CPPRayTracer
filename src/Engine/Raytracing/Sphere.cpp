@@ -31,8 +31,4 @@ bool Sphere::Hit(Ray ray, Interval rayT, HitRecord &hitRecord) {
   return true;
 }
 
-Sphere::Sphere(Vector3 centre, double radius, Material *material) {
-  this->centre = centre;
-  this->radius = radius;
-  this->material = material;
-}
+Sphere::Sphere(Vector3 centre, double radius, std::shared_ptr<Material> material) : centre(centre), radius(radius), material(std::move(material)) {}

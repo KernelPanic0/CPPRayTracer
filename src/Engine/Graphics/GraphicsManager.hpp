@@ -12,5 +12,5 @@ class GraphicsManager {
 public:
   GraphicsManager();
   ~GraphicsManager();
-  void RenderObjects(Window &window, UI &userInterface);
+  void RenderObjects(Window &window, UI &userInterface, std::vector<unsigned char> pixels, int width, int height);
 };

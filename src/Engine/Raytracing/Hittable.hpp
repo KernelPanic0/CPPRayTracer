@@ -3,11 +3,12 @@
 #include "Material.hpp"
 #include "Ray.hpp"
 #include "Vector.hpp"
+#include <memory>
 
 struct HitRecord {
   Vector3 point;
   Vector3 normal;
-  Material *material;
+  std::shared_ptr<Material> material;
   double t;
   bool frontFace;
 
@@ -19,10 +20,10 @@ struct Hittable {
 };
 
 struct HittableList : Hittable {
-  std::vector<Hittable *> objects;
+  std::vector<std::shared_ptr<Hittable>> objects;
 
-  HittableList(Hittable &objectToAdd);
+  HittableList(std::shared_ptr<Hittable> objectToAdd);
   HittableList();
-  void Add(Hittable &objectToAdd);
+  void Add(std::shared_ptr<Hittable> objectToAdd);
   bool Hit(Ray ray, Interval rayT, HitRecord &hitRecord) override;
 };

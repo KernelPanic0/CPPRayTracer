@@ -7,7 +7,6 @@ void Camera::Render(const std::string &outputFile) {
 
 #pragma omp parallel for schedule(dynamic)
   for (int y = 0; y < (int)imageHeight; y++) {
-    std::cout << "\rRows remaining: " << ((int)imageHeight - y) << " " << std::flush;
 
     for (int x = 0; x < imageWidth; x++) {
       Triplet pixelColor(0, 0, 0);
@@ -20,20 +19,20 @@ void Camera::Render(const std::string &outputFile) {
       double b = ComputeColor(pixelColor.z, samplesPerPixel);
 
       int index = (y * imageWidth + x) * 3;
-      pixels[index + 0] = r;
-      pixels[index + 1] = g;
-      pixels[index + 2] = b;
+      pixels[index + 0] = (unsigned char)r;
+      pixels[index + 1] = (unsigned char)g;
+      pixels[index + 2] = (unsigned char)b;
     }
   }
   std::cout << "\nDone!" << "\n";
 }
 
 void Camera::InitialiseProperties() {
-  pixels.resize(imageWidth * (int)imageHeight * 3);
-
   imageHeight = imageWidth / aspectRatio;
   imageHeight = (imageHeight < 1) ? 1 : imageHeight;
   centre = Vector3(0, 0, 0);
+
+  pixels.resize(imageWidth * (int)imageHeight * 3);
 
   double focalLength = 1.0;
   double viewportHeight = 2.0;

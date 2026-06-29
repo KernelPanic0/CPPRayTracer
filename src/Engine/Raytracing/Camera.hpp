@@ -11,9 +11,10 @@ class Camera {
 public:
   double aspectRatio = 16.0 / 9.0;
   int imageWidth = 400;
+  double imageHeight;
   int samplesPerPixel = 50;
   int maxDepth = 40;
-  std::vector<int> pixels;
+  std::vector<unsigned char> pixels;
   Triplet backgroundColor;
 
   Camera(Hittable &world);
@@ -22,7 +23,6 @@ public:
   void Render(const std::string &outputFile = "output.ppm");
 
 private:
-  double imageHeight;
   Vector3 centre;
   Vector3 pixel00Loc;
   Vector3 pixelDeltaHorizontal;

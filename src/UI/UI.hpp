@@ -15,5 +15,5 @@ private:
 
 public:
   UI(Window &window);
-  void Render(ImTextureID texture);
+  void Render(ImTextureID texture, int width, int height);
 };

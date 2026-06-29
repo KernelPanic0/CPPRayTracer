@@ -2,11 +2,11 @@ CXX := g++
 DEBUG ?= 1
 
 ifeq ($(DEBUG),1)
-CXXFLAGS := -std=c++20 -g -O0 -fno-omit-frame-pointer -I./includes -I./includes/imgui -I./src/ -MMD -MP
+CXXFLAGS := -std=c++20 -g -O0 -fno-omit-frame-pointer -I./includes -I./includes/imgui -I./src/ -MMD -MP -fopenmp
 else
-CXXFLAGS := -std=c++20 -O2 -I./includes -I./includes/imgui -I./src/ -MMD -MP
+CXXFLAGS := -std=c++20 -O2 -I./includes -I./includes/imgui -I./src/ -MMD -MP -fopenmp
 endif
-LDFLAGS := -lglfw -lGL -ldl -lX11 -lpthread -lXrandr -lXi
+LDFLAGS := -lglfw -lGL -ldl -lX11 -lpthread -lXrandr -lXi -fopenmp
 BUILD_DIR := ./build
 TARGET := $(BUILD_DIR)/raytracer
 
