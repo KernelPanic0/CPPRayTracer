@@ -1,5 +1,4 @@
 #include "Engine.hpp"
-#include <thread>
 
 Engine::Engine() : pWindow(std::make_shared<Window>()), pGraphicsManager(std::make_unique<GraphicsManager>()), pUserInterface(std::make_unique<UI>(*pWindow)), pRaytracingScene(std::make_unique<HittableList>()), pRtCamera(std::make_unique<Camera>(*pRaytracingScene)) {
   // ray tracing
@@ -15,16 +14,10 @@ Engine::Engine() : pWindow(std::make_shared<Window>()), pGraphicsManager(std::ma
   pRaytracingScene->Add(lightSource);
   pRaytracingScene->Add(floor);
   pRaytracingScene->Add(middleSphere);
-
-  std::jthread workerThread([this]() {
-    pRtCamera->Render();
-  });
-
-  workerThread.detach();
 }
 
 void Engine::RenderFrame() {
-  pGraphicsManager->RenderObjects(*pWindow, *pUserInterface, pRtCamera->pixels, pRtCamera->imageWidth, pRtCamera->imageHeight); // not good, but function needs to use window, not own it
+  pGraphicsManager->RenderObjects(*pWindow, *pUserInterface, pRtCamera); // not good, but function needs to use window, not own it
 }
 
 void Engine::MainLoop() {

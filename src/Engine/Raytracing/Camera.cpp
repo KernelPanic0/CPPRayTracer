@@ -19,9 +19,9 @@ void Camera::Render(const std::string &outputFile) {
       double b = ComputeColor(pixelColor.z, samplesPerPixel);
 
       int index = (y * imageWidth + x) * 3;
-      pixels[index + 0] = (unsigned char)r;
-      pixels[index + 1] = (unsigned char)g;
-      pixels[index + 2] = (unsigned char)b;
+      pixels[index + 0] = (uint8_t)r;
+      pixels[index + 1] = (uint8_t)g;
+      pixels[index + 2] = (uint8_t)b;
     }
   }
   std::cout << "\nDone!" << "\n";

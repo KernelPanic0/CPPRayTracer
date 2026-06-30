@@ -12,9 +12,9 @@ public:
   double aspectRatio = 16.0 / 9.0;
   int imageWidth = 400;
   double imageHeight;
-  int samplesPerPixel = 50;
+  int samplesPerPixel = 400;
   int maxDepth = 40;
-  std::vector<unsigned char> pixels;
+  std::vector<uint8_t> pixels;
   Triplet backgroundColor;
 
   Camera(Hittable &world);

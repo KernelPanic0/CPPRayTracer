@@ -6,7 +6,9 @@
 #include "../misc/stb_image.h"
 #include "ImageViewer.hpp"
 #include <iostream>
+#include "../Engine/Raytracing/Camera.hpp"
 #include <memory>
+#include <thread>
 
 class UI {
 private:
@@ -15,5 +17,5 @@ private:
 
 public:
   UI(Window &window);
-  void Render(ImTextureID texture, int width, int height);
+  void Render(ImTextureID texture, std::unique_ptr<Camera> &pCamera);
 };

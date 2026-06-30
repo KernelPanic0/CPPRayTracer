@@ -18,7 +18,7 @@ UI::UI(Window &window) : pWindow(window) {
   ImGui::StyleColorsDark();
 }
 
-void UI::Render(ImTextureID texture, int width, int height) {
+void UI::Render(ImTextureID texture, std::unique_ptr<Camera> &pCamera) {
   ImGui_ImplOpenGL3_NewFrame();
   ImGui_ImplGlfw_NewFrame();
   // ImGui::SetNextWindowViewport(viewport->ID);
@@ -45,7 +45,7 @@ void UI::Render(ImTextureID texture, int width, int height) {
     ImVec2 canvas_size = ImGui::GetContentRegionAvail();
     ImVec2 canvas_min_size = ImGui::IsWindowAppearing() ? ImVec2(3.0f * tex_w, 4.0f * tex_h) : ImVec2(1.0f, 1.0f);
     canvas_size = ImVec2(IM_MAX(canvas_size.x, canvas_min_size.x), IM_MAX(canvas_size.y, canvas_min_size.y));
-    ImageViewer::DrawCanvas(canvas_size, texture, width, height);
+    ImageViewer::DrawCanvas(canvas_size, texture, pCamera->imageWidth, pCamera->imageHeight);
     ImGui::EndChild();
 
     ImGui::SameLine();
@@ -70,6 +70,15 @@ void UI::Render(ImTextureID texture, int width, int height) {
     ImGui::Text("Rays cast: %dk", 5 / 1000);
 
     ImGui::Separator();
+
+    if (ImGui::Button("Start Render", ImVec2(-1, 0))) {
+
+      std::jthread workerThread([&pCamera]() {
+        pCamera->Render();
+      });
+
+      workerThread.detach();
+    }
     // if (ImGui::Button("Reset Accumulation", ImVec2(-1, 0))) {
     //   // ClearAccumulationBuffer();
     // }
