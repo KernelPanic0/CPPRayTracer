@@ -6,6 +6,8 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <atomic>
+#include <thread>
 
 class Camera {
 public:
@@ -14,13 +16,14 @@ public:
   double imageHeight;
   int samplesPerPixel = 400;
   int maxDepth = 40;
+  std::atomic<double> progress = 0;
   std::vector<uint8_t> pixels;
   Triplet backgroundColor;
 
   Camera(Hittable &world);
 
   // Renders the scene and writes to a PPM file
-  void Render(const std::string &outputFile = "output.ppm");
+  void Render(std::stop_token st);
 
 private:
   Vector3 centre;

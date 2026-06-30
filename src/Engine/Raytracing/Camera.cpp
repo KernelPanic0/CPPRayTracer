@@ -2,11 +2,20 @@
 
 Camera::Camera(Hittable &world) : world(world) {}
 
-void Camera::Render(const std::string &outputFile) {
+void Camera::Render(std::stop_token st) {
+  std::atomic<bool> cancelled = false;
   InitialiseProperties();
 
 #pragma omp parallel for schedule(dynamic)
   for (int y = 0; y < (int)imageHeight; y++) {
+
+    if (cancelled)
+      continue;
+
+    if (st.stop_requested()) {
+      cancelled = true;
+      continue;
+    }
 
     for (int x = 0; x < imageWidth; x++) {
       Triplet pixelColor(0, 0, 0);
@@ -23,8 +32,10 @@ void Camera::Render(const std::string &outputFile) {
       pixels[index + 1] = (uint8_t)g;
       pixels[index + 2] = (uint8_t)b;
     }
+
+    float progressUnit = (float)imageWidth * 3 / pixels.size();
+    progress = progress.fetch_add(progressUnit) + progressUnit;
   }
-  std::cout << "\nDone!" << "\n";
 }
 
 void Camera::InitialiseProperties() {

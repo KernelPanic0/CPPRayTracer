@@ -14,6 +14,7 @@ class UI {
 private:
   bool visible = true;
   Window &pWindow;
+  std::jthread workerThread;
 
 public:
   UI(Window &window);

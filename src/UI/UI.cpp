@@ -57,7 +57,7 @@ void UI::Render(ImTextureID texture, std::unique_ptr<Camera> &pCamera) {
     ImGui::Separator();
 
     ImGui::Text("Progress");
-    ImGui::ProgressBar(0.5); // float 0.0 - 1.0
+    ImGui::ProgressBar(pCamera->progress); // float 0.0 - 1.0
 
     ImGui::Separator();
     ImGui::Text("Settings");
@@ -71,13 +71,19 @@ void UI::Render(ImTextureID texture, std::unique_ptr<Camera> &pCamera) {
 
     ImGui::Separator();
 
+    ImGui::DragInt("Image Width", &pCamera->imageWidth, 1);
+
     if (ImGui::Button("Start Render", ImVec2(-1, 0))) {
+      if (workerThread.joinable()) {
+        workerThread.request_stop();
+        workerThread.detach();
+      }
 
-      std::jthread workerThread([&pCamera]() {
-        pCamera->Render();
+      workerThread = std::jthread([&pCamera](std::stop_token st) {
+        pCamera->pixels.clear();
+        pCamera->progress = 0;
+        pCamera->Render(st);
       });
-
-      workerThread.detach();
     }
     // if (ImGui::Button("Reset Accumulation", ImVec2(-1, 0))) {
     //   // ClearAccumulationBuffer();
