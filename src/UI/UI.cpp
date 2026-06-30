@@ -61,8 +61,9 @@ void UI::Render(ImTextureID texture, std::unique_ptr<Camera> &pCamera) {
 
     ImGui::Separator();
     ImGui::Text("Settings");
-    // ImGui::SliderInt("Samples", nullptr, 1, 64);
-    // ImGui::SliderInt("Max Depth", nullptr, 1, 50);
+    ImGui::DragInt("Image Width", &pCamera->imageWidth, 1);
+    ImGui::SliderInt("Samples", &pCamera->samplesPerPixel, 1, 1000);
+    ImGui::SliderInt("Max Depth", &pCamera->maxDepth, 1, 200);
 
     ImGui::Separator();
     ImGui::Text("Stats");
@@ -71,7 +72,7 @@ void UI::Render(ImTextureID texture, std::unique_ptr<Camera> &pCamera) {
 
     ImGui::Separator();
 
-    ImGui::DragInt("Image Width", &pCamera->imageWidth, 1);
+    // ImGui::Text("Image Width");
 
     if (ImGui::Button("Start Render", ImVec2(-1, 0))) {
       if (workerThread.joinable()) {
