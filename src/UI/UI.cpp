@@ -45,7 +45,9 @@ void UI::Render(ImTextureID texture, std::unique_ptr<Camera> &pCamera) {
     ImVec2 canvas_size = ImGui::GetContentRegionAvail();
     ImVec2 canvas_min_size = ImGui::IsWindowAppearing() ? ImVec2(3.0f * tex_w, 4.0f * tex_h) : ImVec2(1.0f, 1.0f);
     canvas_size = ImVec2(IM_MAX(canvas_size.x, canvas_min_size.x), IM_MAX(canvas_size.y, canvas_min_size.y));
-    ImageViewer::DrawCanvas(canvas_size, texture, pCamera->imageWidth, pCamera->imageHeight);
+
+    int imageHeight = pCamera->imageWidth / (pCamera->aspectRatio.first / pCamera->aspectRatio.second);
+    ImageViewer::DrawCanvas(canvas_size, texture, pCamera->imageWidth, imageHeight);
     ImGui::EndChild();
 
     ImGui::SameLine();
