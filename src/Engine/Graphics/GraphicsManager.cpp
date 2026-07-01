@@ -11,7 +11,15 @@ void GraphicsManager::RenderObjects(Window &window, UI &userInterface, std::uniq
   GLuint tx;
   glGenTextures(1, &tx);
   glBindTexture(GL_TEXTURE_2D, tx);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, pCamera->imageWidth, pCamera->imageHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, pCamera->pixels.data());
+
+  int canvasSize = pCamera->imageHeight * pCamera->imageWidth * 3;
+  uint8_t black[canvasSize] = {255};
+
+  if (pCamera->pixels.empty()) {
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, pCamera->imageWidth, pCamera->imageHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, black);
+  } else {
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, pCamera->imageWidth, pCamera->imageHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, pCamera->pixels.data());
+  }
 
   userInterface.Render((ImTextureID)(intptr_t)tx, pCamera);
 

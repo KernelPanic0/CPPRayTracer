@@ -67,12 +67,11 @@ void UI::Render(ImTextureID texture, std::unique_ptr<Camera> &pCamera) {
 
     ImGui::Separator();
     ImGui::Text("Stats");
-    ImGui::Text("Resolution: %dx%d", 200, 200);
-    ImGui::Text("Rays cast: %dk", 5 / 1000);
+    ImGui::Text("Resolution: %dx%d", pCamera->imageWidth, (int)(pCamera->imageWidth / (pCamera->aspectRatio.first / pCamera->aspectRatio.second)));
+    ImGui::Text("Rays cast: %d", pCamera->raysCast.load());
+    ImGui::Text("Aspect Ratio: %d:%d", (int)pCamera->aspectRatio.first, (int)pCamera->aspectRatio.second);
 
     ImGui::Separator();
-
-    // ImGui::Text("Image Width");
 
     if (ImGui::Button("Start Render", ImVec2(-1, 0))) {
       if (workerThread.joinable()) {

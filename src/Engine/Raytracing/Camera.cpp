@@ -21,6 +21,7 @@ void Camera::Render(std::stop_token st) {
       Triplet pixelColor(0, 0, 0);
       for (int sample = 0; sample < samplesPerPixel; sample++) {
         Ray ray = GetRay(x, y);
+        raysCast = raysCast.fetch_add(1) + 1;
         pixelColor += RayColor(ray, maxDepth);
       }
       double r = ComputeColor(pixelColor.x, samplesPerPixel);
@@ -39,7 +40,7 @@ void Camera::Render(std::stop_token st) {
 }
 
 void Camera::InitialiseProperties() {
-  imageHeight = imageWidth / aspectRatio;
+  imageHeight = imageWidth / aspectRatioResult;
   imageHeight = (imageHeight < 1) ? 1 : imageHeight;
   centre = Vector3(0, 0, 0);
 
