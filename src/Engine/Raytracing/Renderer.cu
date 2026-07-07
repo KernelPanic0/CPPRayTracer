@@ -1,0 +1,46 @@
+#include <iostream>
+#include "Renderer.cuh"
+
+#define checkCudaErrors(val) check_cuda((val), #val, __FILE__, __LINE__)
+void check_cuda(cudaError_t result, char const *const func, const char *const file, int const line) {
+  if (result) {
+    std::cerr << "CUDA error = " << static_cast<unsigned int>(result) << " at " << file << ":" << line << " '" << func << "' \n";
+    // Make sure we call CUDA Device Reset before exiting
+    cudaDeviceReset();
+    exit(99);
+  }
+}
+
+__global__ void render(double *fb, int maxX, int maxY) {
+  int i = threadIdx.x + blockIdx.x * blockDim.x;
+  int j = threadIdx.y + blockIdx.y * blockDim.y;
+
+  if ((i >= maxX) || (j >= maxY))
+    return;
+
+  int pixel_index = j * maxX * 3 + i * 3;
+  fb[pixel_index + 0] = double(i) / maxX;
+  fb[pixel_index + 1] = double(j) / maxY;
+  fb[pixel_index + 2] = 0.2;
+}
+
+double *StartRender(int imageHeight, int imageWidth) {
+  int numPixels = (int)imageHeight * imageWidth;
+  size_t fbSize = 3 * numPixels * sizeof(double);
+
+  double *fb;
+  checkCudaErrors(cudaMallocManaged((void **)&fb, fbSize));
+
+  int tx = 8;
+  int ty = 8;
+
+  // Render our buffer
+  dim3 blocks(imageWidth / tx + 1, imageHeight / ty + 1);
+  dim3 threads(tx, ty);
+
+  render<<<blocks, threads>>>(fb, imageWidth, imageHeight);
+  checkCudaErrors(cudaGetLastError());
+  checkCudaErrors(cudaDeviceSynchronize());
+
+  return fb;
+}

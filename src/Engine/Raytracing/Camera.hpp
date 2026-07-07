@@ -8,6 +8,7 @@
 #include <string>
 #include <atomic>
 #include <thread>
+#include "Renderer.cuh"
 
 class Camera {
 public:

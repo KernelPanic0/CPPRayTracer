@@ -6,37 +6,56 @@ void Camera::Render(std::stop_token st) {
   std::atomic<bool> cancelled = false;
   InitialiseProperties();
 
-#pragma omp parallel for schedule(dynamic)
-  for (int y = 0; y < (int)imageHeight; y++) {
+  double *fb = StartRender((int)imageHeight, imageWidth);
 
-    if (cancelled)
-      continue;
+  for (int j = imageHeight - 1; j >= 0; j--) {
+    for (int i = 0; i < imageWidth; i++) {
+      size_t pixel_index = j * 3 * imageWidth + i * 3;
 
-    if (st.stop_requested()) {
-      cancelled = true;
-      continue;
+      double r = fb[pixel_index + 0];
+      double g = fb[pixel_index + 1];
+      double b = fb[pixel_index + 2];
+      int ir = (int)(255.999 * r);
+      int ig = (int)(255.999 * g);
+      int ib = (int)(255.999 * b);
+
+      pixels[pixel_index + 0] = (uint8_t)ir;
+      pixels[pixel_index + 1] = (uint8_t)ig;
+      pixels[pixel_index + 2] = (uint8_t)ib;
     }
-
-    for (int x = 0; x < imageWidth; x++) {
-      Triplet pixelColor(0, 0, 0);
-      for (int sample = 0; sample < samplesPerPixel; sample++) {
-        Ray ray = GetRay(x, y);
-        raysCast = raysCast.fetch_add(1) + 1;
-        pixelColor += RayColor(ray, maxDepth);
-      }
-      double r = ComputeColor(pixelColor.x, samplesPerPixel);
-      double g = ComputeColor(pixelColor.y, samplesPerPixel);
-      double b = ComputeColor(pixelColor.z, samplesPerPixel);
-
-      int index = (y * imageWidth + x) * 3;
-      pixels[index + 0] = (uint8_t)r;
-      pixels[index + 1] = (uint8_t)g;
-      pixels[index + 2] = (uint8_t)b;
-    }
-
-    float progressUnit = (float)imageWidth * 3 / pixels.size();
-    progress = progress.fetch_add(progressUnit) + progressUnit;
   }
+
+  // #pragma omp parallel for schedule(dynamic)
+  //   for (int y = 0; y < (int)imageHeight; y++) {
+
+  //     if (cancelled)
+  //       continue;
+
+  //     if (st.stop_requested()) {
+  //       cancelled = true;
+  //       continue;
+  //     }
+
+  //     for (int x = 0; x < imageWidth; x++) {
+  //       Triplet pixelColor(0, 0, 0);
+  //       for (int sample = 0; sample < samplesPerPixel; sample++) {
+  //         Ray ray = GetRay(x, y);
+  //         raysCast = raysCast.fetch_add(1) + 1;
+  //         pixelColor += RayColor(ray, maxDepth);
+  //       }
+  //       double r = ComputeColor(pixelColor.x, samplesPerPixel);
+  //       double g = ComputeColor(pixelColor.y, samplesPerPixel);
+  //       double b = ComputeColor(pixelColor.z, samplesPerPixel);
+
+  //       int index = (y * imageWidth + x) * 3;
+  //       pixels[index + 0] = (uint8_t)r;
+  //       pixels[index + 1] = (uint8_t)g;
+  //       pixels[index + 2] = (uint8_t)b;
+  //     }
+
+  //     float progressUnit = (float)imageWidth * 3 / pixels.size();
+  //     progress = progress.fetch_add(progressUnit) + progressUnit;
+  //   }
 }
 
 void Camera::InitialiseProperties() {

@@ -1,12 +1,17 @@
 CXX := g++
+NVCC := nvcc
 DEBUG ?= 1
 
 ifeq ($(DEBUG),1)
-CXXFLAGS := -std=c++20 -g -O0 -fno-omit-frame-pointer -I./includes -I./includes/imgui -I./src/ -MMD -MP -fopenmp
+CXXFLAGS := -std=c++20 -g -O0 -fno-omit-frame-pointer -I./includes -I./includes/imgui -I./src/ -MMD -MP
+NVCCFLAGS := -std=c++20 -g -O0 -I./includes -I./src/
 else
-CXXFLAGS := -std=c++20 -O2 -I./includes -I./includes/imgui -I./src/ -MMD -MP -fopenmp
+CXXFLAGS := -std=c++20 -O2 -I./includes -I./includes/imgui -I./src/ -MMD -MP
+NVCCFLAGS := -std=c++20 -O2 -I./includes -I./src/
 endif
-LDFLAGS := -lglfw -lGL -ldl -lX11 -lpthread -lXrandr -lXi -fopenmp
+
+LDFLAGS := -lglfw -lGL -ldl -lX11 -lpthread -lXrandr -lXi -lcuda -lcudart
+
 BUILD_DIR := ./build
 TARGET := $(BUILD_DIR)/raytracer
 
@@ -37,17 +42,23 @@ SRC := ./src/main.cpp \
     ./includes/imgui/imgui_impl_glfw.cpp \
     ./includes/imgui/imgui_impl_opengl3.cpp
 
+CUDA_SRC := \
+    ./src/Engine/Raytracing/Renderer.cu
+
 OBJ := $(SRC:.cpp=.o)
 OBJ := $(OBJ:.c=.o)
 OBJ := $(patsubst %,$(BUILD_DIR)/%,$(OBJ))
+
+CUDA_OBJ := $(CUDA_SRC:.cu=.o)
+CUDA_OBJ := $(patsubst %,$(BUILD_DIR)/%,$(CUDA_OBJ))
 
 all: $(TARGET)
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
-$(TARGET): $(BUILD_DIR) $(OBJ)
-	$(CXX) $(OBJ) -o $(TARGET) $(LDFLAGS)
+$(TARGET): $(BUILD_DIR) $(OBJ) $(CUDA_OBJ)
+	$(NVCC) $(OBJ) $(CUDA_OBJ) -o $(TARGET) $(LDFLAGS)
 
 $(BUILD_DIR)/%.o: %.cpp | $(BUILD_DIR)
 	mkdir -p $(dir $@)
@@ -56,6 +67,10 @@ $(BUILD_DIR)/%.o: %.cpp | $(BUILD_DIR)
 $(BUILD_DIR)/%.o: %.c | $(BUILD_DIR)
 	mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/%.o: %.cu | $(BUILD_DIR)
+	mkdir -p $(dir $@)
+	$(NVCC) $(NVCCFLAGS) -c $< -o $@
 
 clean:
 	rm -rf $(BUILD_DIR)
