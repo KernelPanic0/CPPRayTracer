@@ -1,3 +1,3 @@
 #pragma once
 
-double *StartRender(int imageHeight, int imageWidth);
+uint8_t *StartRender(int imageHeight, int imageWidth);

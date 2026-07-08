@@ -7,7 +7,7 @@
 #include "./Raytracing/Camera.hpp"
 #include "./Raytracing/Material.hpp"
 #include "./Raytracing/Sphere.hpp"
-#include "./Raytracing/Vector.hpp"
+#include "./Raytracing/Vector.cuh"
 
 class Engine {
 private:

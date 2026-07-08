@@ -3,7 +3,7 @@
 #include "Interval.hpp"
 #include "Material.hpp"
 #include "Ray.hpp"
-#include "Vector.hpp"
+#include "Vector.cuh"
 
 class Sphere : public Hittable {
 private:

@@ -2,7 +2,7 @@
 #include "Hittable.hpp"
 #include "Interval.hpp"
 #include "Ray.hpp"
-#include "Vector.hpp"
+#include "Vector.cuh"
 #include <fstream>
 #include <iostream>
 #include <string>

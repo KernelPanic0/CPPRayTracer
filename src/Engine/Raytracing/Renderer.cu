@@ -1,5 +1,7 @@
 #include <iostream>
+#include <stdint.h>
 #include "Renderer.cuh"
+#include "Vector.cuh"
 
 #define checkCudaErrors(val) check_cuda((val), #val, __FILE__, __LINE__)
 void check_cuda(cudaError_t result, char const *const func, const char *const file, int const line) {
@@ -11,7 +13,7 @@ void check_cuda(cudaError_t result, char const *const func, const char *const fi
   }
 }
 
-__global__ void render(double *fb, int maxX, int maxY) {
+__global__ void render(uint8_t *fb, int maxX, int maxY) {
   int i = threadIdx.x + blockIdx.x * blockDim.x;
   int j = threadIdx.y + blockIdx.y * blockDim.y;
 
@@ -19,16 +21,21 @@ __global__ void render(double *fb, int maxX, int maxY) {
     return;
 
   int pixel_index = j * maxX * 3 + i * 3;
-  fb[pixel_index + 0] = double(i) / maxX;
-  fb[pixel_index + 1] = double(j) / maxY;
-  fb[pixel_index + 2] = 0.2;
+
+  int r = (int)(255.999 * double(i) / maxX);
+  int g = (int)(255.999 * double(j) / maxY);
+  int b = (int)(255.999 * 0.2);
+
+  fb[pixel_index + 0] = (uint8_t)r;
+  fb[pixel_index + 1] = (uint8_t)g;
+  fb[pixel_index + 2] = (uint8_t)b;
 }
 
-double *StartRender(int imageHeight, int imageWidth) {
+uint8_t *StartRender(int imageHeight, int imageWidth) {
   int numPixels = (int)imageHeight * imageWidth;
-  size_t fbSize = 3 * numPixels * sizeof(double);
+  size_t fbSize = 3 * numPixels * sizeof(uint8_t);
 
-  double *fb;
+  uint8_t *fb;
   checkCudaErrors(cudaMallocManaged((void **)&fb, fbSize));
 
   int tx = 8;

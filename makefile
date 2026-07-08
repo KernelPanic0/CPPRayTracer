@@ -24,7 +24,6 @@ SRC := ./src/main.cpp \
 	./src/Engine/Engine.cpp \
     ./src/Engine/Graphics/GraphicsManager.cpp \
     ./src/Engine/Graphics/Buffers.cpp \
-	./src/Engine/Raytracing/Vector.cpp \
 	./src/Engine/Raytracing/Sphere.cpp \
 	./src/Engine/Raytracing/Camera.cpp \
 	./src/Engine/Raytracing/Constants.cpp \

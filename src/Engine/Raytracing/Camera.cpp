@@ -6,24 +6,8 @@ void Camera::Render(std::stop_token st) {
   std::atomic<bool> cancelled = false;
   InitialiseProperties();
 
-  double *fb = StartRender((int)imageHeight, imageWidth);
-
-  for (int j = imageHeight - 1; j >= 0; j--) {
-    for (int i = 0; i < imageWidth; i++) {
-      size_t pixel_index = j * 3 * imageWidth + i * 3;
-
-      double r = fb[pixel_index + 0];
-      double g = fb[pixel_index + 1];
-      double b = fb[pixel_index + 2];
-      int ir = (int)(255.999 * r);
-      int ig = (int)(255.999 * g);
-      int ib = (int)(255.999 * b);
-
-      pixels[pixel_index + 0] = (uint8_t)ir;
-      pixels[pixel_index + 1] = (uint8_t)ig;
-      pixels[pixel_index + 2] = (uint8_t)ib;
-    }
-  }
+  uint8_t *fb = StartRender((int)imageHeight, imageWidth);
+  pixels.assign(fb, fb + pixels.size());
 
   // #pragma omp parallel for schedule(dynamic)
   //   for (int y = 0; y < (int)imageHeight; y++) {

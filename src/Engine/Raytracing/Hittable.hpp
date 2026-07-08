@@ -2,7 +2,7 @@
 #include "Interval.hpp"
 #include "Material.hpp"
 #include "Ray.hpp"
-#include "Vector.hpp"
+#include "Vector.cuh"
 #include <memory>
 
 struct HitRecord {
