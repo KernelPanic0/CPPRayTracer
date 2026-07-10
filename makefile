@@ -24,12 +24,7 @@ SRC := ./src/main.cpp \
 	./src/Engine/Engine.cpp \
     ./src/Engine/Graphics/GraphicsManager.cpp \
     ./src/Engine/Graphics/Buffers.cpp \
-	./src/Engine/Raytracing/Sphere.cpp \
 	./src/Engine/Raytracing/Camera.cpp \
-	./src/Engine/Raytracing/Constants.cpp \
-	./src/Engine/Raytracing/Hittable.cpp \
-	./src/Engine/Raytracing/Interval.cpp \
-	./src/Engine/Raytracing/Material.cpp \
 	./src/Engine/Raytracing/Ray.cpp \
     ./src/UI/UI.cpp \
     ./src/UI/ImageViewer.cpp \

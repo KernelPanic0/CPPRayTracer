@@ -1,7 +1,7 @@
 #pragma once
-#include "Hittable.hpp"
-#include "Interval.hpp"
-#include "Ray.hpp"
+#include "Hittable.cuh"
+#include "Interval.cuh"
+#include "Ray.cuh"
 #include "Vector.cuh"
 #include <fstream>
 #include <iostream>

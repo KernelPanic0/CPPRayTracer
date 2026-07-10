@@ -1,5 +1,5 @@
 #pragma once
-#include "Constants.hpp"
+#include "Constants.cuh"
 #include <math.h>
 #include <random>
 
