@@ -25,7 +25,6 @@ SRC := ./src/main.cpp \
     ./src/Engine/Graphics/GraphicsManager.cpp \
     ./src/Engine/Graphics/Buffers.cpp \
 	./src/Engine/Raytracing/Camera.cpp \
-	./src/Engine/Raytracing/Ray.cpp \
     ./src/UI/UI.cpp \
     ./src/UI/ImageViewer.cpp \
     ./includes/imgui/imgui.cpp \

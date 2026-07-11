@@ -1,12 +1,11 @@
 #pragma once
+#include "HitRecord.cuh"
 #include "Ray.cuh"
 
 #ifndef __CUDACC__
 #define __host__
 #define __device__
 #endif
-
-struct HitRecord; // forward declaration - no include needed
 
 class Material {
 public:

@@ -1,27 +1,10 @@
 #pragma once
 #include "Interval.cuh"
+#include "HitRecord.cuh"
 #include "Material.cuh"
 #include "Ray.cuh"
 #include "Vector.cuh"
 #include <memory>
-
-#ifndef __CUDACC__
-#define __host__
-#define __device__
-#endif
-
-struct HitRecord {
-  Vector3 point;
-  Vector3 normal;
-  std::shared_ptr<Material> material;
-  double t;
-  bool frontFace;
-
-  __host__ __device__ inline void SetFaceNormal(Ray ray, Vector3 outwardNormal) {
-    frontFace = Vector3::Dot(ray.direction, outwardNormal) < 0;
-    normal = frontFace ? outwardNormal : -outwardNormal;
-  }
-};
 
 struct Hittable {
   __host__ __device__ virtual inline bool Hit(Ray ray, Interval rayT, HitRecord &hitRecord) {
