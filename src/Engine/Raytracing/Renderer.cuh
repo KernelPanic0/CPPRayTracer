@@ -4,6 +4,7 @@
 #include "Vector.cuh"
 #include "Hittable.cuh"
 #include "Sphere.cuh"
+#include <float.h>
 
 #ifndef __CUDACC__
 #define __host__
@@ -22,14 +23,13 @@ struct CameraParams {
   double imageHeight;
   Triplet backgroundColor;
   int samplesPerPixel = 50;
-  int maxDepth = 40;
+  int maxDepth = 5;
 };
 
-__device__ Triplet
-RayColor(Hittable **world, const Ray &ray, int depth);
-__device__ Ray GetRay(int i, int j, CameraParams camParams);
-__device__ Vector3 PixelSampleSquare(CameraParams camParams);
+__device__ Triplet RayColor(Hittable **world, Ray &ray, int depth, curandState *dCurandState);
+__device__ Ray GetRay(int i, int j, CameraParams camParams, curandState *dCurandState);
+__device__ Vector3 PixelSampleSquare(CameraParams camParams, curandState *dCurandState);
 __device__ double ComputeColor(double color, int samplesPerPixel);
 // __global__ void InitialiseProperties(CameraParams &camParams);
 
-uint8_t *StartRender(int imageHeight, int imageWidth);
+uint8_t *StartRender();

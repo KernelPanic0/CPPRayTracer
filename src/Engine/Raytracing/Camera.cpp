@@ -6,7 +6,7 @@ void Camera::Render(std::stop_token st) {
   std::atomic<bool> cancelled = false;
   InitialiseProperties();
 
-  uint8_t *fb = StartRender((int)imageHeight, imageWidth);
+  uint8_t *fb = StartRender();
   pixels.assign(fb, fb + pixels.size());
 
   // #pragma omp parallel for schedule(dynamic)
@@ -106,7 +106,8 @@ Triplet Camera::RayColor(const Ray &ray, int depth) {
   Triplet attenuation(0, 0, 0);
   Triplet colorFromEmission = hitRecord.material->Emitted(0, 0, hitRecord.point);
 
-  if (!hitRecord.material->Scatter(ray, hitRecord, attenuation, scattered))
+  if (false)
+    //   if (!hitRecord.material->Scatter(ray, hitRecord, attenuation, scattered))
     return colorFromEmission;
 
   Triplet colorFromScatter = attenuation * RayColor(scattered, depth - 1);

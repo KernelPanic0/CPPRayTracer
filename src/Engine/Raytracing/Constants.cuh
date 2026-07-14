@@ -2,6 +2,7 @@
 #include <limits>
 #include <math.h>
 #include <random>
+#include <curand_kernel.h>
 
 #ifndef __CUDACC__
 #define __host__

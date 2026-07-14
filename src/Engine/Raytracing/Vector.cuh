@@ -15,17 +15,17 @@ struct Triplet {
   __host__ __device__ Triplet() = default;
   __host__ __device__ Triplet(double x, double y, double z) : x(x), y(y), z(z) {}
 
-  __device__ static inline Triplet Random() {
-    double x = Constants::RandomDouble();
-    double y = Constants::RandomDouble();
-    double z = Constants::RandomDouble();
+  __device__ static inline Triplet Random(curandState *dCurandState) {
+    double x = curand_uniform(dCurandState);
+    double y = curand_uniform(dCurandState);
+    double z = curand_uniform(dCurandState);
     return Triplet(x, y, z);
   }
 
-  __device__ static inline Triplet Random(double min, double max) {
-    double x = Constants::RandomDouble() * (max - min) + min;
-    double y = Constants::RandomDouble() * (max - min) + min;
-    double z = Constants::RandomDouble() * (max - min) + min;
+  __device__ static inline Triplet Random(double min, double max, curandState *dCurandState) {
+    double x = curand_uniform(dCurandState) * (max - min) + min;
+    double y = curand_uniform(dCurandState) * (max - min) + min;
+    double z = curand_uniform(dCurandState) * (max - min) + min;
     return Triplet(x, y, z);
   }
 
@@ -61,6 +61,14 @@ struct Triplet {
     return Triplet(x * otherTriplet.x, y * otherTriplet.y, z * otherTriplet.z);
   }
 
+  __host__ __device__ inline Triplet operator*=(const Triplet &otherTriplet) {
+    x *= otherTriplet.x;
+    y *= otherTriplet.y;
+    z *= otherTriplet.z;
+
+    return *this;
+  }
+
   __host__ __device__ inline Triplet operator*(double t) const {
     return Triplet(x * t, y * t, z * t);
   }
@@ -90,21 +98,21 @@ struct Vector3 : Triplet {
     return x * x + y * y + z * z;
   }
 
-  __device__ static inline Vector3 RandomInUnitSphere() {
+  __device__ static inline Vector3 RandomInUnitSphere(curandState *dCurandState) {
     while (true) {
-      Vector3 p = Vector3::Random(-1, 1);
+      Vector3 p = Vector3::Random(-1, 1, dCurandState);
       if (p.LengthSquared() < 1) {
         return p;
       }
     }
   }
 
-  __device__ static inline Vector3 RandomUnitVector() {
-    return UnitVector(RandomInUnitSphere());
+  __device__ static inline Vector3 RandomUnitVector(curandState *dCurandState) {
+    return UnitVector(RandomInUnitSphere(dCurandState));
   }
 
-  __device__ static inline Vector3 RandomOnHmisphere(const Vector3 &normal) {
-    Vector3 onUnitSphere = RandomUnitVector();
+  __device__ static inline Vector3 RandomOnHmisphere(const Vector3 &normal, curandState *dCurandState) {
+    Vector3 onUnitSphere = RandomUnitVector(dCurandState);
     if (Dot(onUnitSphere, normal) > 0.0) {
       return onUnitSphere;
     } else {
