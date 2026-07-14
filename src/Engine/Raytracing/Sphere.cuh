@@ -9,10 +9,10 @@ class Sphere : public Hittable {
 private:
   Vector3 centre;
   double radius;
-  std::shared_ptr<Material> material;
+  Material *material;
 
 public:
-  __host__ __device__ inline bool Hit(Ray ray, Interval rayT, HitRecord &hitRecord) override {
+  __device__ inline bool Hit(Ray ray, Interval rayT, HitRecord &hitRecord) override {
     Vector3 oc = (Vector3)(ray.origin - centre); // Vector to the centre of the sphere
 
     // Coefficients used for the quadratic equation in order to find the intersection points of the ray.
@@ -42,5 +42,5 @@ public:
     return true;
   }
 
-  __host__ __device__ inline Sphere(Vector3 centre, double radius, std::shared_ptr<Material> material) : centre(centre), radius(radius), material(material) {}
+  __host__ __device__ inline Sphere(Vector3 centre, double radius, Material *material) : centre(centre), radius(radius), material(material) {}
 };

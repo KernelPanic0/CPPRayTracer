@@ -1,6 +1,6 @@
 #include "Camera.hpp"
 
-Camera::Camera(Hittable &world) : world(world) {}
+Camera::Camera() {}
 
 void Camera::Render(std::stop_token st) {
   std::atomic<bool> cancelled = false;
@@ -98,7 +98,8 @@ Triplet Camera::RayColor(const Ray &ray, int depth) {
   HitRecord hitRecord;
   Interval rayTInterval(0.001, Constants::infinity);
 
-  if (!world.Hit(ray, rayTInterval, hitRecord))
+  //   if (!world.Hit(ray, rayTInterval, hitRecord))
+  if (false)
     return backgroundColor;
 
   Ray scattered(Vector3(0, 0, 0), Vector3(0, 0, 0));

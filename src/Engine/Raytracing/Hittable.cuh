@@ -7,30 +7,31 @@
 #include <memory>
 
 struct Hittable {
-  __host__ __device__ virtual inline bool Hit(Ray ray, Interval rayT, HitRecord &hitRecord) {
+  __device__ virtual inline bool Hit(Ray ray, Interval rayT, HitRecord &hitRecord) {
     return false;
   }
 };
 
 struct HittableList : Hittable {
-  std::vector<std::shared_ptr<Hittable>> objects;
+  Hittable **objects;
+  size_t size = 0;
 
-  __host__ __device__ inline HittableList() {}
+  __device__ inline HittableList() {}
+  __device__ inline HittableList(Hittable **_objects, size_t _size) : objects(_objects), size(_size) {}
 
-  __host__ __device__ inline HittableList(std::shared_ptr<Hittable> objectToAdd) {
-    objects.push_back(objectToAdd);
+  __device__ inline void Add(Hittable *objectToAdd) {
+    objects[size] = objectToAdd;
+    size++;
   }
 
-  __host__ __device__ inline void Add(std::shared_ptr<Hittable> objectToAdd) {
-    objects.push_back(objectToAdd);
-  }
-
-  __host__ __device__ inline bool Hit(Ray ray, Interval rayT, HitRecord &hitRecord) override {
+  __device__ inline bool Hit(Ray ray, Interval rayT, HitRecord &hitRecord) override {
     HitRecord tempRecord;
     bool hitAnything = false;
     double closestSoFar = rayT.max;
 
-    for (std::shared_ptr<Hittable> obj : objects) {
+    for (int i = 0; i < size; i++) {
+      Hittable *obj = objects[i];
+
       if (obj->Hit(ray, Interval(rayT.min, closestSoFar), tempRecord)) {
         hitAnything = true;
         closestSoFar = tempRecord.t;

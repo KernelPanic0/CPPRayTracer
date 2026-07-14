@@ -15,14 +15,14 @@ struct Triplet {
   __host__ __device__ Triplet() = default;
   __host__ __device__ Triplet(double x, double y, double z) : x(x), y(y), z(z) {}
 
-  __host__ __device__ static inline Triplet Random() {
+  __device__ static inline Triplet Random() {
     double x = Constants::RandomDouble();
     double y = Constants::RandomDouble();
     double z = Constants::RandomDouble();
     return Triplet(x, y, z);
   }
 
-  __host__ __device__ static inline Triplet Random(double min, double max) {
+  __device__ static inline Triplet Random(double min, double max) {
     double x = Constants::RandomDouble() * (max - min) + min;
     double y = Constants::RandomDouble() * (max - min) + min;
     double z = Constants::RandomDouble() * (max - min) + min;
@@ -90,7 +90,7 @@ struct Vector3 : Triplet {
     return x * x + y * y + z * z;
   }
 
-  __host__ __device__ static inline Vector3 RandomInUnitSphere() {
+  __device__ static inline Vector3 RandomInUnitSphere() {
     while (true) {
       Vector3 p = Vector3::Random(-1, 1);
       if (p.LengthSquared() < 1) {
@@ -99,11 +99,11 @@ struct Vector3 : Triplet {
     }
   }
 
-  __host__ __device__ static inline Vector3 RandomUnitVector() {
+  __device__ static inline Vector3 RandomUnitVector() {
     return UnitVector(RandomInUnitSphere());
   }
 
-  __host__ __device__ static inline Vector3 RandomOnHmisphere(const Vector3 &normal) {
+  __device__ static inline Vector3 RandomOnHmisphere(const Vector3 &normal) {
     Vector3 onUnitSphere = RandomUnitVector();
     if (Dot(onUnitSphere, normal) > 0.0) {
       return onUnitSphere;

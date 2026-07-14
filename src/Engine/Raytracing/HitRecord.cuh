@@ -13,11 +13,11 @@ struct Material;
 struct HitRecord {
   Vector3 point;
   Vector3 normal;
-  std::shared_ptr<Material> material;
+  Material *material;
   double t;
   bool frontFace;
 
-  __host__ __device__ inline void SetFaceNormal(Ray ray, Vector3 outwardNormal) {
+  __device__ inline void SetFaceNormal(Ray ray, Vector3 outwardNormal) {
     frontFace = Vector3::Dot(ray.direction, outwardNormal) < 0;
     normal = frontFace ? outwardNormal : -outwardNormal;
   }

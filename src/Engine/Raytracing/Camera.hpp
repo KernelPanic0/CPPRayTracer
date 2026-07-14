@@ -22,7 +22,7 @@ public:
   std::vector<uint8_t> pixels;
   Triplet backgroundColor;
 
-  Camera(Hittable &world);
+  Camera();
 
   // Renders the scene and writes to a PPM file
   void Render(std::stop_token st);
@@ -33,7 +33,7 @@ private:
   Vector3 pixel00Loc;
   Vector3 pixelDeltaHorizontal;
   Vector3 pixelDeltaVertical;
-  Hittable &world;
+  //   Hittable &world;
 
   void InitialiseProperties();
   Ray GetRay(int i, int j);

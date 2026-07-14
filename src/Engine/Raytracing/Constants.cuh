@@ -17,11 +17,12 @@ public:
   static constexpr double infinity = std::numeric_limits<double>::max();
   static constexpr double pi = M_PI;
 
-  __host__ __device__ static inline double DegreesToRadians(double degrees) {
+  __device__ static inline double DegreesToRadians(double degrees) {
     return degrees * pi / 180.0;
   }
 
-  __host__ __device__ static inline double RandomDouble() {
-    return (double)gen() / (double)std::mt19937::max();
+  __device__ static inline double RandomDouble() {
+    // return (double)gen() / (double)std::mt19937::max();
+    return 0.5;
   }
 };
