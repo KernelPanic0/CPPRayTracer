@@ -18,7 +18,7 @@ UI::UI(Window &window) : pWindow(window) {
   ImGui::StyleColorsDark();
 }
 
-void UI::Render(ImTextureID texture, std::unique_ptr<Camera> &pCamera) {
+void UI::Render(ImTextureID texture, std::unique_ptr<Camera> &pCamera, std::vector<RawSphereData> &pWorld) {
   ImGui_ImplOpenGL3_NewFrame();
   ImGui_ImplGlfw_NewFrame();
   // ImGui::SetNextWindowViewport(viewport->ID);
@@ -81,10 +81,10 @@ void UI::Render(ImTextureID texture, std::unique_ptr<Camera> &pCamera) {
         workerThread.detach();
       }
 
-      workerThread = std::jthread([&pCamera](std::stop_token st) {
+      workerThread = std::jthread([&pCamera, &pWorld](std::stop_token st) {
         pCamera->pixels.clear();
         pCamera->progress = 0;
-        pCamera->Render(st);
+        pCamera->Render(st, pWorld);
       });
     }
     // if (ImGui::Button("Reset Accumulation", ImVec2(-1, 0))) {

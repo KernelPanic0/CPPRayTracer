@@ -10,6 +10,8 @@
 #include <memory>
 #include <thread>
 
+struct RawSphereData;
+
 class UI {
 private:
   bool visible = true;
@@ -18,5 +20,5 @@ private:
 
 public:
   UI(Window &window);
-  void Render(ImTextureID texture, std::unique_ptr<Camera> &pCamera);
+  void Render(ImTextureID texture, std::unique_ptr<Camera> &pCamera, std::vector<RawSphereData> &pWorld);
 };

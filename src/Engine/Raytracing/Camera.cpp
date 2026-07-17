@@ -2,11 +2,11 @@
 
 Camera::Camera() {}
 
-void Camera::Render(std::stop_token st) {
+void Camera::Render(std::stop_token st, std::vector<RawSphereData> &pWorld) {
   std::atomic<bool> cancelled = false;
   InitialiseProperties();
 
-  uint8_t *fb = StartRender();
+  uint8_t *fb = StartRender(pWorld);
   pixels.assign(fb, fb + pixels.size());
 
   // #pragma omp parallel for schedule(dynamic)

@@ -3,7 +3,7 @@ GraphicsManager::GraphicsManager() {}
 
 GraphicsManager::~GraphicsManager() {}
 
-void GraphicsManager::RenderObjects(Window &window, UI &userInterface, std::unique_ptr<Camera> &pCamera) {
+void GraphicsManager::RenderObjects(Window &window, UI &userInterface, std::unique_ptr<Camera> &pCamera, std::vector<RawSphereData> &pWorld) {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glEnable(GL_DEPTH_TEST);
 
@@ -22,7 +22,7 @@ void GraphicsManager::RenderObjects(Window &window, UI &userInterface, std::uniq
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, pCamera->imageWidth, pCamera->imageHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, pCamera->pixels.data());
   }
 
-  userInterface.Render((ImTextureID)(intptr_t)tx, pCamera);
+  userInterface.Render((ImTextureID)(intptr_t)tx, pCamera, pWorld);
 
   // render everything
   glfwSwapBuffers(window.window);

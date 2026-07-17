@@ -15,6 +15,7 @@ private:
   std::unique_ptr<GraphicsManager> pGraphicsManager;
   std::unique_ptr<UI> pUserInterface;
   std::unique_ptr<Camera> pRtCamera;
+  std::vector<RawSphereData> world;
 
 public:
   Engine();

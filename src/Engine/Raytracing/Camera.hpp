@@ -25,7 +25,7 @@ public:
   Camera();
 
   // Renders the scene and writes to a PPM file
-  void Render(std::stop_token st);
+  void Render(std::stop_token st, std::vector<RawSphereData> &pWorld);
 
 private:
   double aspectRatioResult = aspectRatio.first / aspectRatio.second;

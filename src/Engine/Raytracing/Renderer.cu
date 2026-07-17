@@ -102,8 +102,9 @@ __device__ double ComputeColor(double color, int samplesPerPixel) {
 }
 
 __host__ void InitialiseProperties(CameraParams &camParams) {
-  camParams.samplesPerPixel = 1000;
-  camParams.maxDepth = 200;
+  camParams.samplesPerPixel = 10000;
+  camParams.imageWidth = 800;
+  camParams.maxDepth = 50;
   camParams.imageHeight = camParams.imageWidth / camParams.aspectRatio;
   camParams.imageHeight = (camParams.imageHeight < 1) ? 1 : camParams.imageHeight;
   camParams.center = Vector3(0, 0, 0);
@@ -124,34 +125,41 @@ __host__ void InitialiseProperties(CameraParams &camParams) {
   camParams.pixel00Loc = viewportTopLeft + 0.5 * (camParams.pixelDeltaHorizontal + camParams.pixelDeltaVertical);
 }
 
-__global__ void CreateWorld(Hittable **dHittableList, Hittable **dWorld) {
+__global__ void CreateWorld(Hittable **dHittableList, Hittable **dWorld, RawSphereData *world, size_t size) {
   if (threadIdx.x == 0 && blockIdx.x == 0) {
-    auto diffuseLight = new DiffuseLight(Triplet(1, 0.5, 1), 3);
-    auto mSurface = new Lambertian(Triplet(1, 1, 1));
+    for (int i = 0; i < size; i++) {
+      *(dHittableList + i) = new Sphere(world[i].center, world[i].radius, world[i].material.Build());
+    }
 
-    *(dHittableList) = new Sphere(Vector3(0, 2.8, -2), 1, diffuseLight);        // light source
-    *(dHittableList + 1) = new Sphere(Vector3(0, -50002, -5), 50000, mSurface); // floor
+    // auto diffuseLight = new DiffuseLight(Triplet(1, 0.5, 1), 3);
+    // auto mSurface = new Lambertian(Triplet(1, 1, 1));
+    // auto mSphere = new Metal(Triplet(0.2705, 0.356, 1), 0.4);
 
-    *dWorld = new HittableList(dHittableList, 2);
+    // *(dHittableList) = new Sphere(Vector3(0, 2.8, -2), 1, diffuseLight);        // light source
+    // *(dHittableList + 1) = new Sphere(Vector3(0, -50002, -5), 50000, mSurface); // floor
+    // *(dHittableList + 2) = new Sphere(Vector3(0, -1.5, -2), .5, mSphere);       // little dude
+
+    *dWorld = new HittableList(dHittableList, size);
   }
 }
 
 __global__ void FreeWorld(Hittable **dHittableList, Hittable **dWorld) {
   delete *(dHittableList);
   delete *(dHittableList + 1);
+  delete *(dHittableList + 2);
   delete *dWorld;
 }
 
-uint8_t *StartRender() {
+uint8_t *StartRender(std::vector<RawSphereData> &pWorld) {
   CameraParams camParams; // may be more performant to be a global __constant__
   InitialiseProperties(camParams);
 
-  // create world
+  // allocate memory for world on gpu
   Hittable **dObjectList; // objects in hittableList
   Hittable **dWorld;      // hittableList itself
-  checkCudaErrors(cudaMalloc((void **)&dObjectList, 2 * sizeof(Hittable *)));
+  checkCudaErrors(cudaMalloc((void **)&dObjectList, pWorld.size() * sizeof(Hittable *)));
   checkCudaErrors(cudaMalloc((void **)&dWorld, sizeof(Hittable *))); // allow decaying into Hittable because only the Hit function is needed
-  CreateWorld<<<1, 1>>>(dObjectList, dWorld);
+  CreateWorld<<<1, 1>>>(dObjectList, dWorld, pWorld.data(), pWorld.size());
 
   std::cout << "World Created" << std::endl;
   // create framebuffer

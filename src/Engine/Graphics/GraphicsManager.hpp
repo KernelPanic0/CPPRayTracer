@@ -8,10 +8,15 @@
 #include <unordered_map>
 #include "../Raytracing/Camera.hpp"
 #include <vector>
+#include "../Raytracing/RawSphereData.hpp"
+
+#ifndef __CUDACC__
+#define __device__
+#endif
 
 class GraphicsManager {
 public:
   GraphicsManager();
   ~GraphicsManager();
-  void RenderObjects(Window &window, UI &userInterface, std::unique_ptr<Camera> &pCamera);
+  void RenderObjects(Window &window, UI &userInterface, std::unique_ptr<Camera> &pCamera, std::vector<RawSphereData> &pWorld);
 };

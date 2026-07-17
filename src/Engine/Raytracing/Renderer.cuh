@@ -5,12 +5,15 @@
 #include "Hittable.cuh"
 #include "Sphere.cuh"
 #include <float.h>
+#include "RawSphereData.hpp"
 
 #ifndef __CUDACC__
 #define __host__
 #define __device__
 #define __global__
 #endif
+
+struct RawSphereData;
 
 struct CameraParams {
   Vector3 center;
@@ -32,4 +35,4 @@ __device__ Vector3 PixelSampleSquare(CameraParams camParams, curandState *dCuran
 __device__ double ComputeColor(double color, int samplesPerPixel);
 // __global__ void InitialiseProperties(CameraParams &camParams);
 
-uint8_t *StartRender();
+uint8_t *StartRender(std::vector<RawSphereData> &pWorld);
