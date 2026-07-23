@@ -21,7 +21,7 @@ __global__ void InitRandom(int maxX, int maxY, curandState *dCurandState) {
     curand_init(1984, pixelIndex, 0, &dCurandState[pixelIndex]);
 }
 
-__global__ void RenderGridKernel(uint8_t *fb, Hittable **world, int maxX, int maxY, CameraParams camParams, curandState *dCurandSate, int startX, int startY) {
+__global__ void RenderGridKernel(uint8_t *fb, Hittable **world, int maxX, int maxY, CameraParams camParams, curandState *dCurandSate, int startX, int startY, bool* stopRequested) {
     int x = startX + threadIdx.x + blockIdx.x * blockDim.x;
     int y = startY + threadIdx.y + blockIdx.y * blockDim.y;
 
@@ -34,6 +34,8 @@ __global__ void RenderGridKernel(uint8_t *fb, Hittable **world, int maxX, int ma
     for (int sample = 0; sample < camParams.samplesPerPixel; sample++) {
         Ray ray = GetRay(x, y, camParams, &localRandState);
         pixelColor += RayColor(world, ray, camParams.maxDepth, &localRandState);
+
+        if (*stopRequested == true) return;
     }
 
     double r = ComputeColor(pixelColor.x, camParams.samplesPerPixel);
@@ -155,17 +157,23 @@ CudaRenderer::CudaRenderer(int width, int height) {
     dRandState = nullptr;
     dWorld = nullptr;
     dObjectList = nullptr;
+    hOutputBuffer = nullptr;
 
-    camParams.imageWidth = 0; 
-    camParams.imageHeight = 0;
+    checkCudaErrors(cudaMalloc((void**)&dStopRequested, sizeof(bool)));
+    checkCudaErrors(cudaMemset(dStopRequested, 0, sizeof(bool)));
+
+    for (int i = 0; i < numStreams; i++) {
+        checkCudaErrors(cudaStreamCreate(&streams[i]));
+    }
 
     Resize(width, height);
 }
 
 void CudaRenderer::RenderFrame() {
-    Resize(camParams.imageWidth, camParams.imageHeight);
+    isRendering = true;
     int bucketSize = 64;
     dim3 threads(16, 16);
+    int streamIdx = 0;
 
     for (int x = 0; x < camParams.imageWidth; x += bucketSize) {
         for (int y = 0; y < camParams.imageHeight; y += bucketSize) {
@@ -174,22 +182,56 @@ void CudaRenderer::RenderFrame() {
 
             dim3 blocks((currentBucketWidth + threads.x - 1) / threads.x, (currentBucketHeight + threads.y - 1) / threads.y);
 
-            RenderGridKernel<<<blocks, threads>>>(dFramebuffer, dWorld, camParams.imageWidth, camParams.imageHeight, camParams, dRandState, x, y);
-            checkCudaErrors(cudaDeviceSynchronize());
-            checkCudaErrors(cudaMemcpy(outputBuffer.data(), dFramebuffer, numPixels * 3, cudaMemcpyDeviceToHost));
+            cudaStream_t currentStream = streams[streamIdx];
+
+            RenderGridKernel<<<blocks, threads, 0, currentStream>>>(dFramebuffer, dWorld, camParams.imageWidth, camParams.imageHeight, camParams, dRandState, x, y, dStopRequested);
+
+            size_t pitch = camParams.imageWidth * 3 * sizeof(uint8_t);
+            size_t offset = (y * camParams.imageWidth + x) * 3;
+
+            uint8_t* dSrc = dFramebuffer + offset;
+            uint8_t* hDst = hOutputBuffer + offset;
+
+            checkCudaErrors(cudaMemcpy2DAsync(
+                hDst,                                 
+                pitch,                                
+                dSrc,                                 
+                pitch,                                
+                currentBucketWidth * 3 * sizeof(uint8_t),
+                currentBucketHeight,                   
+                cudaMemcpyDeviceToHost,
+                currentStream
+            ));
+
+            streamIdx = (streamIdx + 1) % numStreams;
         }
     }
+
+    checkCudaErrors(cudaDeviceSynchronize());
+    isRendering = false;
 }
 
 void CudaRenderer::Resize(int width, int height) {
     camParams.imageWidth = width;
     camParams.imageHeight = height;
-    
-    numPixels = width * height;
+    sizeDirty = true;
 
     InitialiseProperties(camParams);
 
-    outputBuffer.resize(numPixels * 3, 0);
+    if (numPixels == width * height && hOutputBuffer != nullptr) {
+        return; 
+    }
+    
+    numPixels = width * height;
+
+    if (hOutputBuffer) {
+        checkCudaErrors(cudaFreeHost(hOutputBuffer));
+        hOutputBuffer = nullptr;
+    }
+
+    // PINNED host memory
+    checkCudaErrors(cudaMallocHost((void**)&hOutputBuffer, numPixels * 3 * sizeof(uint8_t)));
+
 
     if (dFramebuffer) cudaFree(dFramebuffer);
     if (dRandState) cudaFree(dRandState);
@@ -200,8 +242,12 @@ void CudaRenderer::Resize(int width, int height) {
     dim3 threads(16, 16);
     dim3 blocks((width + threads.x - 1) / threads.x, (height + threads.y - 1) / threads.y);
     InitRandom<<<blocks, threads>>>(width, height, dRandState);
-    
     cudaDeviceSynchronize();
+}
+
+void CudaRenderer::RequestStop(bool stop) {
+    checkCudaErrors(cudaMemset(dStopRequested, 1, sizeof(bool)));
+    isRendering = !isRendering;
 }
 
 void CudaRenderer::UpdateWorld(const std::vector<RawSphereData> &hWorld) {
@@ -238,4 +284,12 @@ CudaRenderer::~CudaRenderer() {
     FreeWorld();
     if (dFramebuffer) cudaFree(dFramebuffer);
     if (dRandState) cudaFree(dRandState);
+
+    if (hOutputBuffer) {
+        cudaFreeHost(hOutputBuffer);
+    }
+
+    for (int i = 0; i < numStreams; i++) {
+        cudaStreamDestroy(streams[i]);
+    }
 }

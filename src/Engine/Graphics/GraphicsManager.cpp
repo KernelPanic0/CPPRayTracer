@@ -13,15 +13,19 @@ void GraphicsManager::InitTextures(int width, int height) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    std::vector<uint8_t> white(width * height * 3, 255); // clean this up
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, white.data());
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 }
 
 void GraphicsManager::RenderObjects(std::shared_ptr<Window> &pWindow, std::unique_ptr<UI> &pUserInterface, std::unique_ptr<CudaRenderer> &pRenderer, std::vector<RawSphereData> &pWorld) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    if (pRenderer->sizeDirty) {
+        InitTextures(pRenderer->camParams.imageWidth, pRenderer->camParams.imageHeight);
+        pRenderer->sizeDirty = false;
+    }
+
     glBindTexture(GL_TEXTURE_2D, outputBufferTexture);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, pRenderer->camParams.imageWidth, pRenderer->camParams.imageHeight, GL_RGB, GL_UNSIGNED_BYTE, pRenderer->outputBuffer.data());
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, pRenderer->camParams.imageWidth, pRenderer->camParams.imageHeight, GL_RGB, GL_UNSIGNED_BYTE, pRenderer->hOutputBuffer);
 
     pUserInterface->Render((ImTextureID)(intptr_t)outputBufferTexture, pRenderer, pWorld);
 

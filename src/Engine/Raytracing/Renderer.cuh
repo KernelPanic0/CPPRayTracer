@@ -6,6 +6,7 @@
 #include "Sphere.cuh"
 #include <float.h>
 #include "RawSphereData.hpp"
+#include <thread>
 
 #ifndef __CUDACC__
 #define __host__
@@ -29,21 +30,28 @@ struct CameraParams {
     int maxDepth = 5;
 };
 
+constexpr int numStreams = 8;
 class CudaRenderer {
   public:
+    bool isRendering = false;
+    bool sizeDirty = false; // for regenerating texture in GraphicsManager when size changes. Probably a better way to do this
     CameraParams camParams;
-    std::vector<uint8_t> outputBuffer;
+    uint8_t *hOutputBuffer = nullptr;
 
     CudaRenderer(int width, int height);
     void RenderFrame();
     void Resize(int width, int height);
+    void RequestStop(bool stop);
+    void ClearOutput();
     void UpdateWorld(const std::vector<RawSphereData> &hWorld);
     void FreeWorld();
     ~CudaRenderer();
 
   private:
     int numPixels;
+    cudaStream_t streams[numStreams];
 
+    bool *dStopRequested = nullptr;
     uint8_t *dFramebuffer = nullptr;
     curandState *dRandState = nullptr;
     Hittable **dObjectList = nullptr;

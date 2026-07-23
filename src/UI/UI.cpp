@@ -60,11 +60,29 @@ void UI::Render(ImTextureID texture, std::unique_ptr<CudaRenderer> &pRenderer, s
         ImGui::Separator();
         ImGui::Text("Settings");
 
-        ImGui::DragInt("Image Width", &pRenderer->camParams.imageWidth, 1);
+        if (pRenderer->isRendering) {
+            ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+        }
 
-        pRenderer->camParams.imageHeight = pRenderer->camParams.imageWidth / (pRenderer->camParams.aspectNum / pRenderer->camParams.aspectDenom);
+        static const char *items[]{"Bucket", "Progressive"};
+        static int selectedItem = 0;
+        if (ImGui::Combo("Rendering method", &selectedItem, items, IM_ARRAYSIZE(items))) {
+            // Here event is fired
+        }
+
+        if (ImGui::DragInt("Image Width", &pRenderer->camParams.imageWidth, 1)) {
+            pRenderer->camParams.imageHeight = pRenderer->camParams.imageWidth / (pRenderer->camParams.aspectRatio);
+            pRenderer->Resize(pRenderer->camParams.imageWidth, pRenderer->camParams.imageHeight);
+        }
+
         ImGui::SliderInt("Samples", &pRenderer->camParams.samplesPerPixel, 1, 1000);
         ImGui::SliderInt("Max Depth", &pRenderer->camParams.maxDepth, 1, 200);
+
+        if (pRenderer->isRendering) {
+            ImGui::PopItemFlag();
+            ImGui::PopStyleVar();
+        }
 
         ImGui::Separator();
         ImGui::Text("Stats");
@@ -74,18 +92,22 @@ void UI::Render(ImTextureID texture, std::unique_ptr<CudaRenderer> &pRenderer, s
 
         ImGui::Separator();
 
-        if (ImGui::Button("Start Render", ImVec2(-1, 0))) {
+        if (ImGui::Button(!pRenderer->isRendering ? "Start Render" : "Stop Render", ImVec2(-1, 0))) {
             if (workerThread.joinable()) {
                 workerThread.request_stop();
                 workerThread.detach();
             }
 
-            workerThread = std::jthread([&pRenderer, &pWorld](std::stop_token st) {
-                pRenderer->outputBuffer.clear();
-                pRenderer->UpdateWorld(pWorld);
-                // pRenderer->progress = 0;
-                pRenderer->RenderFrame();
-            });
+            if (pRenderer->isRendering) {
+                pRenderer->RequestStop(true);
+            } else {
+                workerThread = std::jthread([&pRenderer, &pWorld](std::stop_token st) {
+                    // pRenderer->outputBuffer.clear();
+                    pRenderer->UpdateWorld(pWorld);
+                    // pRenderer->progress = 0;
+                    pRenderer->RenderFrame();
+                });
+            }
         }
         // if (ImGui::Button("Reset Accumulation", ImVec2(-1, 0))) {
         //   // ClearAccumulationBuffer();
