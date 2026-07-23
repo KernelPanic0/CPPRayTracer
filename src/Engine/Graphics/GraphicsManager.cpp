@@ -1,29 +1,30 @@
 #include "GraphicsManager.hpp"
-GraphicsManager::GraphicsManager() {}
+GraphicsManager::GraphicsManager() {
+    InitTextures(400, 225);
+}
 
-GraphicsManager::~GraphicsManager() {}
+GraphicsManager::~GraphicsManager() {
+    glDeleteTextures(1, &outputBufferTexture);
+}
 
-void GraphicsManager::RenderObjects(Window &window, UI &userInterface, std::unique_ptr<Camera> &pCamera, std::vector<RawSphereData> &pWorld) {
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glEnable(GL_DEPTH_TEST);
+void GraphicsManager::InitTextures(int width, int height) {
+    glGenTextures(1, &outputBufferTexture);
+    glBindTexture(GL_TEXTURE_2D, outputBufferTexture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-  // create ray tracing output texture
-  GLuint tx;
-  glGenTextures(1, &tx);
-  glBindTexture(GL_TEXTURE_2D, tx);
+    std::vector<uint8_t> white(width * height * 3, 255); // clean this up
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, white.data());
+}
 
-  if (pCamera->pixels.empty()) {
-    int imageHeight = pCamera->imageWidth / (pCamera->aspectRatio.first / pCamera->aspectRatio.second);
-    int canvasSize = pCamera->imageWidth * imageHeight * 3;
-    std::vector<uint8_t> white(canvasSize, 255);
+void GraphicsManager::RenderObjects(std::shared_ptr<Window> &pWindow, std::unique_ptr<UI> &pUserInterface, std::unique_ptr<CudaRenderer> &pRenderer, std::vector<RawSphereData> &pWorld) {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, pCamera->imageWidth, imageHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, white.data());
-  } else {
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, pCamera->imageWidth, pCamera->imageHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, pCamera->pixels.data());
-  }
+    glBindTexture(GL_TEXTURE_2D, outputBufferTexture);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, pRenderer->camParams.imageWidth, pRenderer->camParams.imageHeight, GL_RGB, GL_UNSIGNED_BYTE, pRenderer->outputBuffer.data());
 
-  userInterface.Render((ImTextureID)(intptr_t)tx, pCamera, pWorld);
+    pUserInterface->Render((ImTextureID)(intptr_t)outputBufferTexture, pRenderer, pWorld);
 
-  // render everything
-  glfwSwapBuffers(window.window);
+    // render everything
+    glfwSwapBuffers(pWindow->window);
 }

@@ -6,19 +6,19 @@
 #include "../misc/stb_image.h"
 #include "ImageViewer.hpp"
 #include <iostream>
-#include "../Engine/Raytracing/Camera.hpp"
+#include "../Engine/Raytracing/Renderer.cuh"
 #include <memory>
 #include <thread>
 
 struct RawSphereData;
 
 class UI {
-private:
-  bool visible = true;
-  Window &pWindow;
-  std::jthread workerThread;
+  private:
+    bool visible = true;
+    std::shared_ptr<Window> pWindow;
+    std::jthread workerThread;
 
-public:
-  UI(Window &window);
-  void Render(ImTextureID texture, std::unique_ptr<Camera> &pCamera, std::vector<RawSphereData> &pWorld);
+  public:
+    UI(std::shared_ptr<Window> &pWindow);
+    void Render(ImTextureID texture, std::unique_ptr<CudaRenderer> &pRenderer, std::vector<RawSphereData> &pWorld);
 };

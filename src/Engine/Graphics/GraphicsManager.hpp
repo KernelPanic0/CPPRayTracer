@@ -6,17 +6,21 @@
 #include "Buffers.hpp"
 #include "memory"
 #include <unordered_map>
-#include "../Raytracing/Camera.hpp"
 #include <vector>
 #include "../Raytracing/RawSphereData.hpp"
+#include "../Raytracing/Renderer.cuh"
 
 #ifndef __CUDACC__
 #define __device__
 #endif
 
 class GraphicsManager {
-public:
-  GraphicsManager();
-  ~GraphicsManager();
-  void RenderObjects(Window &window, UI &userInterface, std::unique_ptr<Camera> &pCamera, std::vector<RawSphereData> &pWorld);
+  public:
+    GraphicsManager();
+    void InitTextures(int width, int height);
+    ~GraphicsManager();
+    void RenderObjects(std::shared_ptr<Window> &window, std::unique_ptr<UI> &userInterface, std::unique_ptr<CudaRenderer> &pRenderer, std::vector<RawSphereData> &pWorld);
+
+  private:
+    GLuint outputBufferTexture;
 };

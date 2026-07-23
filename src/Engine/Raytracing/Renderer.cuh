@@ -13,26 +13,46 @@
 #define __global__
 #endif
 
-struct RawSphereData;
-
 struct CameraParams {
-  Vector3 center;
-  Vector3 pixel00Loc;
-  Vector3 pixelDeltaHorizontal;
-  Vector3 pixelDeltaVertical;
+    Vector3 center;
+    Vector3 pixel00Loc;
+    Vector3 pixelDeltaHorizontal;
+    Vector3 pixelDeltaVertical;
 
-  double aspectRatio = 16.0 / 9.0;
-  int imageWidth = 400;
-  double imageHeight;
-  Triplet backgroundColor;
-  int samplesPerPixel = 50;
-  int maxDepth = 5;
+    double aspectNum = 16.0f;
+    double aspectDenom = 9.0f;
+    double aspectRatio = aspectNum / aspectDenom;
+    int imageWidth = 400;
+    double imageHeight;
+    Triplet backgroundColor;
+    int samplesPerPixel = 15;
+    int maxDepth = 5;
+};
+
+class CudaRenderer {
+  public:
+    CameraParams camParams;
+    std::vector<uint8_t> outputBuffer;
+
+    CudaRenderer(int width, int height);
+    void RenderFrame();
+    void Resize(int width, int height);
+    void UpdateWorld(const std::vector<RawSphereData> &hWorld);
+    void FreeWorld();
+    ~CudaRenderer();
+
+  private:
+    int numPixels;
+
+    uint8_t *dFramebuffer = nullptr;
+    curandState *dRandState = nullptr;
+    Hittable **dObjectList = nullptr;
+    Hittable **dWorld = nullptr;
+    size_t worldSize = 0;
 };
 
 __device__ Triplet RayColor(Hittable **world, Ray &ray, int depth, curandState *dCurandState);
 __device__ Ray GetRay(int i, int j, CameraParams camParams, curandState *dCurandState);
 __device__ Vector3 PixelSampleSquare(CameraParams camParams, curandState *dCurandState);
 __device__ double ComputeColor(double color, int samplesPerPixel);
-// __global__ void InitialiseProperties(CameraParams &camParams);
-
-uint8_t *StartRender(std::vector<RawSphereData> &pWorld);
+__host__ void InitialiseProperties(CameraParams &camParams);
