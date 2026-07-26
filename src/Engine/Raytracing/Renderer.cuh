@@ -40,8 +40,9 @@ class CudaRenderer {
 
     CudaRenderer(int width, int height);
     void RenderFrame();
+    void RenderAccumulation();
     void Resize(int width, int height);
-    void RequestStop(bool stop);
+    void RequestStop();
     void ClearOutput();
     void UpdateWorld(const std::vector<RawSphereData> &hWorld);
     void FreeWorld();
@@ -52,6 +53,7 @@ class CudaRenderer {
     cudaStream_t streams[numStreams];
 
     bool *dStopRequested = nullptr;
+    Triplet *dAccumulationBuffer = nullptr;
     uint8_t *dFramebuffer = nullptr;
     curandState *dRandState = nullptr;
     Hittable **dObjectList = nullptr;

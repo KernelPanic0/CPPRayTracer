@@ -99,13 +99,15 @@ void UI::Render(ImTextureID texture, std::unique_ptr<CudaRenderer> &pRenderer, s
             }
 
             if (pRenderer->isRendering) {
-                pRenderer->RequestStop(true);
+                pRenderer->RequestStop();
             } else {
                 workerThread = std::jthread([&pRenderer, &pWorld](std::stop_token st) {
-                    // pRenderer->outputBuffer.clear();
                     pRenderer->UpdateWorld(pWorld);
-                    // pRenderer->progress = 0;
-                    pRenderer->RenderFrame();
+                    if (selectedItem == 1) { // progressive accumulation
+                        pRenderer->RenderAccumulation();
+                    } else { // bucket
+                        pRenderer->RenderFrame();
+                    }
                 });
             }
         }
