@@ -24,6 +24,7 @@ SRC := ./src/main.cpp \
 	./src/Engine/Engine.cpp \
     ./src/Engine/Graphics/GraphicsManager.cpp \
     ./src/Engine/Graphics/Buffers.cpp \
+    ./includes/stb_image_write.c \
     ./src/UI/UI.cpp \
     ./src/UI/ImageViewer.cpp \
     ./includes/imgui/imgui.cpp \

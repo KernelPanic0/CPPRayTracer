@@ -111,13 +111,20 @@ void UI::Render(ImTextureID texture, std::unique_ptr<CudaRenderer> &pRenderer, s
                 });
             }
         }
-        // if (ImGui::Button("Reset Accumulation", ImVec2(-1, 0))) {
-        //   // ClearAccumulationBuffer();
-        // }
-        // if (ImGui::Button("Save to PPM", ImVec2(-1, 0))) {
 
-        //   // SavePPM();
-        // }
+        if (pRenderer->isRendering || pRenderer->canvasEmpty) {
+            ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+        }
+
+        if (ImGui::Button("Save Image", ImVec2(-1, 0))) {
+            stbi_write_png("output.png", pRenderer->camParams.imageWidth, pRenderer->camParams.imageHeight, 3, pRenderer->hOutputBuffer, pRenderer->camParams.imageWidth * 3 * sizeof(uint8_t));
+        }
+
+        if (pRenderer->isRendering || pRenderer->canvasEmpty) {
+            ImGui::PopItemFlag();
+            ImGui::PopStyleVar();
+        }
         // if (ImGui::Button("Stop Render", ImVec2(-1, 0))) {
 
         //   // StopRender();

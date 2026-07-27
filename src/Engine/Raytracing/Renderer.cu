@@ -204,6 +204,7 @@ void CudaRenderer::RenderAccumulation() {
     cudaMemset(dAccumulationBuffer, 0, camParams.imageWidth * camParams.imageHeight * sizeof(Triplet));
 
     isRendering = true;
+    canvasEmpty = false;
     dim3 threads(16, 16);
     dim3 blocks((camParams.imageWidth + threads.x - 1) / threads.x, (camParams.imageHeight + threads.y - 1) / threads.y);
 
@@ -218,6 +219,7 @@ void CudaRenderer::RenderAccumulation() {
 
 void CudaRenderer::RenderFrame() {
     isRendering = true;
+    canvasEmpty = false;
     int bucketSize = 64;
     dim3 threads(16, 16);
     int streamIdx = 0;
@@ -271,6 +273,7 @@ void CudaRenderer::Resize(int width, int height) {
     
     numPixels = width * height;
 
+    canvasEmpty = true;
     if (hOutputBuffer) {
         checkCudaErrors(cudaFreeHost(hOutputBuffer));
         hOutputBuffer = nullptr;

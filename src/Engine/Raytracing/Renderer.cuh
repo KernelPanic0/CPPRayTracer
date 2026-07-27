@@ -34,6 +34,7 @@ constexpr int numStreams = 8;
 class CudaRenderer {
   public:
     bool isRendering = false;
+    bool canvasEmpty = true;
     bool sizeDirty = false; // for regenerating texture in GraphicsManager when size changes. Probably a better way to do this
     CameraParams camParams;
     uint8_t *hOutputBuffer = nullptr;

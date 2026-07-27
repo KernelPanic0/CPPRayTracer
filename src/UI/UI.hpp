@@ -8,6 +8,7 @@
 #include <iostream>
 #include "../Engine/Raytracing/Renderer.cuh"
 #include <memory>
+#include "../includes/stb_image_write.h"
 #include <thread>
 
 struct RawSphereData;
