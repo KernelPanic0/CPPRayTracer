@@ -54,7 +54,7 @@ __global__ void RenderSampleKernel(uint8_t *fb, Triplet *accumBuffer, Hittable *
     dCurandSate[pixelIndex] = localRandState;
 }
 
-__global__ void RenderGridKernel(uint8_t *fb, Hittable **world, int maxX, int maxY, CameraParams camParams, curandState *dCurandSate, int startX, int startY, bool* stopRequested) {
+__global__ void RenderBucketKernel(uint8_t *fb, Hittable **world, int maxX, int maxY, CameraParams camParams, curandState *dCurandSate, int startX, int startY, bool* stopRequested) {
     int x = startX + threadIdx.x + blockIdx.x * blockDim.x;
     int y = startY + threadIdx.y + blockIdx.y * blockDim.y;
 
@@ -192,6 +192,7 @@ CudaRenderer::CudaRenderer(int width, int height) {
 
     checkCudaErrors(cudaMalloc((void**)&dStopRequested, sizeof(bool)));
     checkCudaErrors(cudaMemset(dStopRequested, 0, sizeof(bool)));
+    checkCudaErrors(cudaMallocHost((void**)&progress, sizeof(float)));
 
     for (int i = 0; i < numStreams; i++) {
         checkCudaErrors(cudaStreamCreate(&streams[i]));
@@ -213,6 +214,7 @@ void CudaRenderer::RenderAccumulation() {
 
         checkCudaErrors(cudaDeviceSynchronize());
         checkCudaErrors(cudaMemcpy(hOutputBuffer, dFramebuffer, numPixels * 3 * sizeof(uint8_t), cudaMemcpyDeviceToHost));    
+        *progress = (float)i/(float)camParams.samplesPerPixel;
     }
     isRendering = false;
 }
@@ -233,7 +235,7 @@ void CudaRenderer::RenderFrame() {
 
             cudaStream_t currentStream = streams[streamIdx];
 
-            RenderGridKernel<<<blocks, threads, 0, currentStream>>>(dFramebuffer, dWorld, camParams.imageWidth, camParams.imageHeight, camParams, dRandState, x, y, dStopRequested);
+            RenderBucketKernel<<<blocks, threads, 0, currentStream>>>(dFramebuffer, dWorld, camParams.imageWidth, camParams.imageHeight, camParams, dRandState, x, y, dStopRequested);
 
             size_t pitch = camParams.imageWidth * 3 * sizeof(uint8_t);
             size_t offset = (y * camParams.imageWidth + x) * 3;
@@ -247,9 +249,17 @@ void CudaRenderer::RenderFrame() {
                 dSrc,                                 
                 pitch,                                
                 currentBucketWidth * 3 * sizeof(uint8_t),
-                currentBucketHeight,                   
+                currentBucketHeight,
                 cudaMemcpyDeviceToHost,
                 currentStream
+            ));
+
+            float currentProgress = *progress + currentBucketWidth * currentBucketHeight / ((float)camParams.imageWidth * (float)camParams.imageHeight);
+            checkCudaErrors(cudaMemcpyAsync(
+                progress,
+                &currentProgress,
+                sizeof(float),
+                cudaMemcpyHostToHost
             ));
 
             streamIdx = (streamIdx + 1) % numStreams;
@@ -273,6 +283,7 @@ void CudaRenderer::Resize(int width, int height) {
     
     numPixels = width * height;
 
+    cudaMemset(progress, 0.0f, sizeof(float));
     canvasEmpty = true;
     if (hOutputBuffer) {
         checkCudaErrors(cudaFreeHost(hOutputBuffer));

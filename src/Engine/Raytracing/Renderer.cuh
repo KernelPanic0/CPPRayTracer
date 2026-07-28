@@ -38,6 +38,7 @@ class CudaRenderer {
     bool sizeDirty = false; // for regenerating texture in GraphicsManager when size changes. Probably a better way to do this
     CameraParams camParams;
     uint8_t *hOutputBuffer = nullptr;
+    float *progress = nullptr;
 
     CudaRenderer(int width, int height);
     void RenderFrame();

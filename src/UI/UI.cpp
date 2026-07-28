@@ -55,7 +55,8 @@ void UI::Render(ImTextureID texture, std::unique_ptr<CudaRenderer> &pRenderer, s
         ImGui::Separator();
 
         ImGui::Text("Progress");
-        ImGui::ProgressBar(0.5); // float 0.0 - 1.0
+        ImGui::ProgressBar(*pRenderer->progress); // float 0.0 - 1.0
+        // std::cout << *pRenderer->progress << "\n";
 
         ImGui::Separator();
         ImGui::Text("Settings");
