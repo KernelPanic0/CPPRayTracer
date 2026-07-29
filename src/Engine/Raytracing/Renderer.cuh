@@ -30,6 +30,10 @@ struct CameraParams {
     int maxDepth = 5;
 };
 
+struct RenderStatistics {
+    int raysCast = 0;
+};
+
 constexpr int numStreams = 8;
 class CudaRenderer {
   public:
@@ -38,6 +42,7 @@ class CudaRenderer {
     bool sizeDirty = false; // for regenerating texture in GraphicsManager when size changes. Probably a better way to do this
     CameraParams camParams;
     uint8_t *hOutputBuffer = nullptr;
+    RenderStatistics *renderStats = nullptr;
     float *progress = nullptr;
 
     CudaRenderer(int width, int height);
@@ -63,7 +68,7 @@ class CudaRenderer {
     size_t worldSize = 0;
 };
 
-__device__ Triplet RayColor(Hittable **world, Ray &ray, int depth, curandState *dCurandState);
+__device__ Triplet RayColor(Hittable **world, Ray &ray, int depth, curandState *dCurandState, RenderStatistics *renderStats);
 __device__ Ray GetRay(int i, int j, CameraParams camParams, curandState *dCurandState);
 __device__ Vector3 PixelSampleSquare(CameraParams camParams, curandState *dCurandState);
 __device__ double ComputeColor(double color, int samplesPerPixel);

@@ -88,7 +88,7 @@ void UI::Render(ImTextureID texture, std::unique_ptr<CudaRenderer> &pRenderer, s
         ImGui::Separator();
         ImGui::Text("Stats");
         ImGui::Text("Resolution: %dx%d", pRenderer->camParams.imageWidth, (int)pRenderer->camParams.imageHeight);
-        ImGui::Text("Rays cast: %d", 0);
+        ImGui::Text("Rays cast: %d", pRenderer->renderStats->raysCast);
         ImGui::Text("Aspect Ratio: %d:%d", (int)pRenderer->camParams.aspectNum, (int)pRenderer->camParams.aspectDenom);
 
         ImGui::Separator();

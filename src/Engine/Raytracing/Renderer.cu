@@ -22,7 +22,7 @@ __global__ void InitRandom(int maxX, int maxY, curandState *dCurandState) {
     curand_init(1984, pixelIndex, 0, &dCurandState[pixelIndex]);
 }
 
-__global__ void RenderSampleKernel(uint8_t *fb, Triplet *accumBuffer, Hittable **world, int maxX, int maxY, CameraParams camParams, curandState *dCurandSate, int sample) {
+__global__ void RenderSampleKernel(uint8_t *fb, Triplet *accumBuffer, Hittable **world, int maxX, int maxY, CameraParams camParams, curandState *dCurandSate, int sample, RenderStatistics* renderStats) {
     int x = threadIdx.x + blockIdx.x * blockDim.x;
     int y = threadIdx.y + blockIdx.y * blockDim.y;
 
@@ -33,7 +33,7 @@ __global__ void RenderSampleKernel(uint8_t *fb, Triplet *accumBuffer, Hittable *
 
     Triplet pixelColor(0, 0, 0);
     Ray ray = GetRay(x, y, camParams, &localRandState);
-    pixelColor += RayColor(world, ray, camParams.maxDepth, &localRandState);
+    pixelColor += RayColor(world, ray, camParams.maxDepth, &localRandState, renderStats);
 
     if (sample == 1) {
         accumBuffer[pixelIndex] = pixelColor;
@@ -54,7 +54,7 @@ __global__ void RenderSampleKernel(uint8_t *fb, Triplet *accumBuffer, Hittable *
     dCurandSate[pixelIndex] = localRandState;
 }
 
-__global__ void RenderBucketKernel(uint8_t *fb, Hittable **world, int maxX, int maxY, CameraParams camParams, curandState *dCurandSate, int startX, int startY, bool* stopRequested) {
+__global__ void RenderBucketKernel(uint8_t *fb, Hittable **world, int maxX, int maxY, CameraParams camParams, curandState *dCurandSate, int startX, int startY, bool* stopRequested, RenderStatistics* renderStats) {
     int x = startX + threadIdx.x + blockIdx.x * blockDim.x;
     int y = startY + threadIdx.y + blockIdx.y * blockDim.y;
 
@@ -66,7 +66,7 @@ __global__ void RenderBucketKernel(uint8_t *fb, Hittable **world, int maxX, int 
     Triplet pixelColor(0, 0, 0);
     for (int sample = 0; sample < camParams.samplesPerPixel; sample++) {
         Ray ray = GetRay(x, y, camParams, &localRandState);
-        pixelColor += RayColor(world, ray, camParams.maxDepth, &localRandState);
+        pixelColor += RayColor(world, ray, camParams.maxDepth, &localRandState, renderStats);
     }
 
     double r = ComputeColor(pixelColor.x, camParams.samplesPerPixel);
@@ -87,7 +87,7 @@ __device__ Ray GetRay(int i, int j, CameraParams camParams, curandState *dCurand
     return Ray(rayOrigin, rayDirection);
 }
 
-__device__ Triplet RayColor(Hittable **world, Ray &ray, int depth, curandState *dCurandState) {
+__device__ Triplet RayColor(Hittable **world, Ray &ray, int depth, curandState *dCurandState, RenderStatistics* renderStats) {
     HitRecord hitRecord;
     Interval rayTInterval(0.001, FLT_MAX);
 
@@ -96,6 +96,7 @@ __device__ Triplet RayColor(Hittable **world, Ray &ray, int depth, curandState *
 
     // for loop may also be easier for compiler to unroll and optimize than a while loop
     while (depth > 1) {
+        renderStats->raysCast++;
         if (!(*world)->Hit(ray, rayTInterval, hitRecord)) {
             accumulation += throughput * Triplet(0, 0, 0);
             depth--;
@@ -190,9 +191,10 @@ CudaRenderer::CudaRenderer(int width, int height) {
     dObjectList = nullptr;
     hOutputBuffer = nullptr;
 
-    checkCudaErrors(cudaMalloc((void**)&dStopRequested, sizeof(bool)));
+    checkCudaErrors(cudaMalloc(&dStopRequested, sizeof(bool)));
     checkCudaErrors(cudaMemset(dStopRequested, 0, sizeof(bool)));
-    checkCudaErrors(cudaMallocHost((void**)&progress, sizeof(float)));
+    checkCudaErrors(cudaMallocHost(&progress, sizeof(float)));
+    checkCudaErrors(cudaMallocManaged(&renderStats, sizeof(RenderStatistics)));
 
     for (int i = 0; i < numStreams; i++) {
         checkCudaErrors(cudaStreamCreate(&streams[i]));
@@ -210,7 +212,7 @@ void CudaRenderer::RenderAccumulation() {
     dim3 blocks((camParams.imageWidth + threads.x - 1) / threads.x, (camParams.imageHeight + threads.y - 1) / threads.y);
 
     for (int i = 1; i < camParams.samplesPerPixel; i++) {
-        RenderSampleKernel<<<blocks, threads>>>(dFramebuffer, dAccumulationBuffer, dWorld, camParams.imageWidth, camParams.imageHeight, camParams, dRandState, i);
+        RenderSampleKernel<<<blocks, threads>>>(dFramebuffer, dAccumulationBuffer, dWorld, camParams.imageWidth, camParams.imageHeight, camParams, dRandState, i, renderStats);
 
         checkCudaErrors(cudaDeviceSynchronize());
         checkCudaErrors(cudaMemcpy(hOutputBuffer, dFramebuffer, numPixels * 3 * sizeof(uint8_t), cudaMemcpyDeviceToHost));    
@@ -235,7 +237,7 @@ void CudaRenderer::RenderFrame() {
 
             cudaStream_t currentStream = streams[streamIdx];
 
-            RenderBucketKernel<<<blocks, threads, 0, currentStream>>>(dFramebuffer, dWorld, camParams.imageWidth, camParams.imageHeight, camParams, dRandState, x, y, dStopRequested);
+            RenderBucketKernel<<<blocks, threads, 0, currentStream>>>(dFramebuffer, dWorld, camParams.imageWidth, camParams.imageHeight, camParams, dRandState, x, y, dStopRequested, renderStats);
 
             size_t pitch = camParams.imageWidth * 3 * sizeof(uint8_t);
             size_t offset = (y * camParams.imageWidth + x) * 3;
@@ -277,16 +279,13 @@ void CudaRenderer::Resize(int width, int height) {
 
     InitialiseProperties(camParams);
 
-    if (numPixels == width * height && hOutputBuffer != nullptr) {
-        return; 
-    }
-    
     numPixels = width * height;
 
     cudaMemset(progress, 0.0f, sizeof(float));
     canvasEmpty = true;
     if (hOutputBuffer) {
         checkCudaErrors(cudaFreeHost(hOutputBuffer));
+        checkCudaErrors(cudaFree(dAccumulationBuffer));
         hOutputBuffer = nullptr;
     }
 
