@@ -3,12 +3,11 @@
 #include "../../GLFW/Window.hpp"
 #include "../../UI/UI.hpp"
 #include "../../misc/stb_image.h"
+#include "../Raytracing/Renderer.hpp"
 #include "Buffers.hpp"
 #include "memory"
 #include <unordered_map>
 #include <vector>
-#include "../Raytracing/RawSphereData.hpp"
-#include "../Raytracing/Renderer.cuh"
 
 #ifndef __CUDACC__
 #define __device__

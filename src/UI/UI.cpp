@@ -18,7 +18,7 @@ UI::UI(std::shared_ptr<Window> &pWindow) : pWindow(pWindow) {
     ImGui::StyleColorsDark();
 }
 
-void UI::Render(ImTextureID texture, std::unique_ptr<CudaRenderer> &pRenderer, std::vector<RawSphereData> &pWorld) {
+void UI::Render(ImTextureID texture, std::unique_ptr<ActiveRenderer> &pRenderer, std::vector<RawSphereData> &pWorld) {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     // ImGui::SetNextWindowViewport(viewport->ID);

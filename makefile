@@ -1,18 +1,34 @@
 CXX := g++
-NVCC := nvcc
+BACKEND ?= cuda
 DEBUG ?= 1
 
-ifeq ($(DEBUG),1)
-CXXFLAGS := -std=c++20 -g -O0 -fno-omit-frame-pointer -I./includes -I./includes/imgui -I./src/ -MMD -MP
-NVCCFLAGS := -std=c++20 -g -O0 -I./includes -I./src/
+ifeq ($(BACKEND),amd)
+    GPU_CC := hipcc
+    GPU_ARCH := -offload-arch=gfx1031
+    CUDA_LIBS := -lamdhip64 -lhiprand
+    CUDA_SRC := ./src/Engine/Raytracing/hip/Renderer.cu
+    BACKEND_INC := -I/opt/rocm/include
+    BACKEND_DEFINE := -DUSE_HIP
 else
-CXXFLAGS := -std=c++20 -O2 -I./includes -I./includes/imgui -I./src/ -MMD -MP
-NVCCFLAGS := -std=c++20 -O2 -I./includes -I./src/
+    GPU_CC := nvcc
+    GPU_ARCH := 
+    CUDA_LIBS := -lcuda -lcudart
+    CUDA_SRC := ./src/Engine/Raytracing/Renderer.cu
+    BACKEND_INC := -I/opt/cuda/include
+    BACKEND_DEFINE := -DUSE_CUDA
 endif
 
-LDFLAGS := -lglfw -lGL -ldl -lX11 -lpthread -lXrandr -lXi -lcuda -lcudart
+ifeq ($(DEBUG),1)
+    CXXFLAGS := -std=c++20 -g -O0 $(BACKEND_INC) -fno-omit-frame-pointer -I./includes -I./includes/imgui -I./src/ -MMD -MP $(BACKEND_DEFINE)
+    GPU_CFLAGS := -std=c++20 -g -O0 $(BACKEND_INC) -I./includes -I./src/ $(GPU_ARCH) $(BACKEND_DEFINE)
+else
+    CXXFLAGS := -std=c++20 -O2 $(BACKEND_INC) -I./includes -I./includes/imgui -I./src/ -MMD -MP $(BACKEND_DEFINE)
+    GPU_CFLAGS := -std=c++20 -O2 $(BACKEND_INC) -I./includes -I./src/ $(GPU_ARCH) $(BACKEND_DEFINE)
+endif
 
-BUILD_DIR := ./build
+LDFLAGS := -lglfw -lGL -ldl -lX11 -lpthread -lXrandr -lXi $(CUDA_LIBS)
+
+BUILD_DIR := ./build/$(BACKEND)
 TARGET := $(BUILD_DIR)/raytracer
 
 SRC := ./src/main.cpp \
@@ -35,9 +51,6 @@ SRC := ./src/main.cpp \
     ./includes/imgui/imgui_impl_glfw.cpp \
     ./includes/imgui/imgui_impl_opengl3.cpp
 
-CUDA_SRC := \
-    ./src/Engine/Raytracing/Renderer.cu
-
 OBJ := $(SRC:.cpp=.o)
 OBJ := $(OBJ:.c=.o)
 OBJ := $(patsubst %,$(BUILD_DIR)/%,$(OBJ))
@@ -51,7 +64,7 @@ $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
 $(TARGET): $(BUILD_DIR) $(OBJ) $(CUDA_OBJ)
-	$(NVCC) $(OBJ) $(CUDA_OBJ) -o $(TARGET) $(LDFLAGS)
+	$(GPU_CC) $(OBJ) $(CUDA_OBJ) -o $(TARGET) $(LDFLAGS)
 
 $(BUILD_DIR)/%.o: %.cpp | $(BUILD_DIR)
 	mkdir -p $(dir $@)
@@ -63,7 +76,7 @@ $(BUILD_DIR)/%.o: %.c | $(BUILD_DIR)
 
 $(BUILD_DIR)/%.o: %.cu | $(BUILD_DIR)
 	mkdir -p $(dir $@)
-	$(NVCC) $(NVCCFLAGS) -c $< -o $@
+	$(GPU_CC) $(GPU_CFLAGS) -c $< -o $@
 
 clean:
 	rm -rf $(BUILD_DIR)
