@@ -96,7 +96,6 @@ __device__ Triplet RayColor(Hittable **world, Ray &ray, int depth, hiprandState 
     Triplet throughput(1, 1, 1);
 
     // for loop may also be easier for compiler to unroll and optimize than a while loop
-        // printf("black3\n");
     while (depth > 1) {
         renderStats->raysCast++;
         if (!(*world)->Hit(ray, rayTInterval, hitRecord)) {

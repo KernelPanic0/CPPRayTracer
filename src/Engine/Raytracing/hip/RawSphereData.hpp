@@ -2,24 +2,20 @@
 #include "Material.cuh"
 #include "Vector.cuh"
 
-enum class MaterialType
-{
+enum class MaterialType {
     Lambertian,
     Metal,
     DiffuseLight
 };
 
-struct RawMaterialData
-{
+struct RawMaterialData {
     MaterialType type;
     Triplet albedo;
     double fuzz = 0.0;      // Metal only
     double intensity = 1.0; // DiffuseLight only
 
-    __device__ Material *Build()
-    {
-        switch (type)
-        {
+    __device__ Material *Build() {
+        switch (type) {
         case MaterialType::Lambertian:
             return new Lambertian(albedo);
         case MaterialType::Metal:
@@ -32,9 +28,21 @@ struct RawMaterialData
     };
 };
 
-struct RawSphereData
-{
+struct RawTriangleData {
+    Vector3 vertices[3];
+    RawMaterialData material;
+};
+
+struct RawSphereData {
     Vector3 center;
     double radius;
     RawMaterialData material;
+};
+
+struct WorldData {
+    RawSphereData *spheres;
+    int sphereCount;
+
+    RawTriangleData *triangles;
+    int triangleCount;
 };
