@@ -10,7 +10,8 @@ class Engine {
     std::unique_ptr<GraphicsManager> pGraphicsManager;
     std::unique_ptr<UI> pUserInterface;
     std::unique_ptr<ActiveRenderer> pRenderer;
-    // std::vector<RawSphereData> world;
+    std::vector<RawSphereData> spheres;
+    std::vector<RawTriangleData> triangles;
     WorldData world;
 
   public:

@@ -39,25 +39,7 @@ struct RawSphereData {
 
 struct WorldData {
     RawSphereData *spheres = nullptr;
-    int sphereCount;
-    void InsertSpheres(std::vector<RawSphereData> &rawSpheres) {
-        sphereCount = rawSpheres.size();
-        size_t spheresSize = sphereCount * sizeof(RawSphereData);
-        spheres = (RawSphereData *)realloc(spheres, spheresSize);
-        memcpy(spheres, rawSpheres.data(), spheresSize);
-    };
-
+    int sphereCount = 0;
     RawTriangleData *triangles = nullptr;
-    int triangleCount;
-    void InsertTriangles(std::vector<RawTriangleData> &rawTriangles) {
-        triangleCount = rawTriangles.size();
-        size_t triangleSize = triangleCount * sizeof(RawTriangleData);
-        triangles = (RawTriangleData *)realloc(spheres, triangleSize);
-        memcpy(triangles, rawTriangles.data(), triangleSize);
-    };
-
-    ~WorldData() {
-        free(spheres);
-        free(triangles);
-    }
+    int triangleCount = 0;
 };
