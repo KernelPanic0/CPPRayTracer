@@ -1,9 +1,10 @@
 #include "Engine.hpp"
 
-Engine::Engine() : pWindow(std::make_shared<Window>()), pGraphicsManager(std::make_unique<GraphicsManager>()), pUserInterface(std::make_unique<UI>(pWindow)), pRenderer(std::make_unique<ActiveRenderer>(400, 225)) {
+Engine::Engine() : pWindow(std::make_shared<Window>()), pGraphicsManager(std::make_unique<GraphicsManager>()), pUserInterface(std::make_unique<UI>(pWindow)), pRenderer(std::make_unique<ActiveRenderer>(400, 225)), world(WorldData()) {
     // 1. Mirrored dark stage & soft ambient light
-    world.push_back({Vector3(0, -50002.5, -4), 50000.0, {MaterialType::Lambertian, Triplet(0.08, 0.08, 0.1)}}); // Floor
-    world.push_back({Vector3(0, 10, -4), 3.0, {MaterialType::DiffuseLight, Triplet(1, 1, 1), 0.0, 0.8}});       // Soft overhead
+    std::vector<RawSphereData> tmpWorld;
+    tmpWorld.push_back({Vector3(0, -50002.5, -4), 50000.0, {MaterialType::Lambertian, Triplet(0.08, 0.08, 0.1)}}); // Floor
+    tmpWorld.push_back({Vector3(0, 10, -4), 3.0, {MaterialType::DiffuseLight, Triplet(1, 1, 1), 0.0, 0.8}});       // Soft overhead
 
     // 2. Lorenz System Parameters
     double x = 0.1, y = 0.0, z = 0.0;
@@ -41,11 +42,13 @@ Engine::Engine() : pWindow(std::make_shared<Window>()), pGraphicsManager(std::ma
 
         // Every 3rd step is an emissive light bead; others are polished chrome
         if (i % 3 == 0) {
-            world.push_back({pos, 0.07, {MaterialType::DiffuseLight, glowColor, 0.0, 3.0}});
+            tmpWorld.push_back({pos, 0.07, {MaterialType::DiffuseLight, glowColor, 0.0, 3.0}});
         } else {
-            world.push_back({pos, 0.05, {MaterialType::Metal, Triplet(0.9, 0.95, 1.0), 0.0}});
+            tmpWorld.push_back({pos, 0.05, {MaterialType::Metal, Triplet(0.9, 0.95, 1.0), 0.0}});
         }
     }
+
+    world.InsertSpheres(tmpWorld);
 }
 
 void Engine::RenderFrame() {

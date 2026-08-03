@@ -22,5 +22,5 @@ class UI {
 
   public:
     UI(std::shared_ptr<Window> &pWindow);
-    void Render(ImTextureID texture, std::unique_ptr<ActiveRenderer> &pRenderer, std::vector<RawSphereData> &pWorld);
+    void Render(ImTextureID texture, std::unique_ptr<ActiveRenderer> &pRenderer, WorldData &pWorld);
 };

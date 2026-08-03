@@ -11,7 +11,7 @@ class Engine {
     std::unique_ptr<UI> pUserInterface;
     std::unique_ptr<ActiveRenderer> pRenderer;
     // std::vector<RawSphereData> world;
-    std::vector<WorldData> world;
+    WorldData world;
 
   public:
     Engine();

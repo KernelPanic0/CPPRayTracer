@@ -16,7 +16,7 @@ void GraphicsManager::InitTextures(int width, int height) {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 }
 
-void GraphicsManager::RenderObjects(std::shared_ptr<Window> &pWindow, std::unique_ptr<UI> &pUserInterface, std::unique_ptr<CudaRenderer> &pRenderer, std::vector<RawSphereData> &pWorld) {
+void GraphicsManager::RenderObjects(std::shared_ptr<Window> &pWindow, std::unique_ptr<UI> &pUserInterface, std::unique_ptr<ActiveRenderer> &pRenderer, WorldData &pWorld) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     if (pRenderer->sizeDirty) {

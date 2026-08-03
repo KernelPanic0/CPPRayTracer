@@ -18,7 +18,7 @@ class GraphicsManager {
     GraphicsManager();
     void InitTextures(int width, int height);
     ~GraphicsManager();
-    void RenderObjects(std::shared_ptr<Window> &window, std::unique_ptr<UI> &userInterface, std::unique_ptr<CudaRenderer> &pRenderer, std::vector<RawSphereData> &pWorld);
+    void RenderObjects(std::shared_ptr<Window> &window, std::unique_ptr<UI> &userInterface, std::unique_ptr<ActiveRenderer> &pRenderer, WorldData &pWorld);
 
   private:
     GLuint outputBufferTexture;

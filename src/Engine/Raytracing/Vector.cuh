@@ -10,158 +10,164 @@
 
 // Generic Triplet type for storing things like colors to differentiate from vectors
 struct Triplet {
-  double x{0}, y{0}, z{0};
+    double x{0}, y{0}, z{0};
 
-  __host__ __device__ Triplet() = default;
-  __host__ __device__ Triplet(double x, double y, double z) : x(x), y(y), z(z) {}
+    __host__ __device__ Triplet() = default;
+    __host__ __device__ Triplet(double x, double y, double z) : x(x), y(y), z(z) {}
 
-  __device__ static inline Triplet Random(curandState *dCurandState) {
-    double x = curand_uniform(dCurandState);
-    double y = curand_uniform(dCurandState);
-    double z = curand_uniform(dCurandState);
-    return Triplet(x, y, z);
-  }
+    __device__ static inline Triplet Random(curandState *dCurandState) {
+        double x = curand_uniform(dCurandState);
+        double y = curand_uniform(dCurandState);
+        double z = curand_uniform(dCurandState);
+        return Triplet(x, y, z);
+    }
 
-  __device__ static inline Triplet Random(double min, double max, curandState *dCurandState) {
-    double x = curand_uniform(dCurandState) * (max - min) + min;
-    double y = curand_uniform(dCurandState) * (max - min) + min;
-    double z = curand_uniform(dCurandState) * (max - min) + min;
-    return Triplet(x, y, z);
-  }
+    __device__ static inline Triplet Random(double min, double max, curandState *dCurandState) {
+        double x = curand_uniform(dCurandState) * (max - min) + min;
+        double y = curand_uniform(dCurandState) * (max - min) + min;
+        double z = curand_uniform(dCurandState) * (max - min) + min;
+        return Triplet(x, y, z);
+    }
 
-  __host__ __device__ inline bool NearZero() const {
-    constexpr double s = 1e-8;
-    return (fabs(x) < s) && (fabs(y) < s) && (fabs(z) < s);
-  }
+    __host__ __device__ inline bool NearZero() const {
+        constexpr double s = 1e-8;
+        return (fabs(x) < s) && (fabs(y) < s) && (fabs(z) < s);
+    }
 
-  // Operator overloads
-  // +
-  __host__ __device__ inline Triplet operator+(const Triplet &otherTriplet) const {
-    return Triplet(x + otherTriplet.x, y + otherTriplet.y, z + otherTriplet.z);
-  }
+    // Operator overloads
+    // +
+    __host__ __device__ inline Triplet operator+(const Triplet &otherTriplet) const {
+        return Triplet(x + otherTriplet.x, y + otherTriplet.y, z + otherTriplet.z);
+    }
 
-  __host__ __device__ inline Triplet &operator+=(const Triplet &otherTriplet) {
-    x += otherTriplet.x;
-    y += otherTriplet.y;
-    z += otherTriplet.z;
-    return *this;
-  }
+    __host__ __device__ inline Triplet &operator+=(const Triplet &otherTriplet) {
+        x += otherTriplet.x;
+        y += otherTriplet.y;
+        z += otherTriplet.z;
+        return *this;
+    }
 
-  // -
-  __host__ __device__ inline Triplet operator-(const Triplet &otherTriplet) const {
-    return Triplet(x - otherTriplet.x, y - otherTriplet.y, z - otherTriplet.z);
-  }
+    // -
+    __host__ __device__ inline Triplet operator-(const Triplet &otherTriplet) const {
+        return Triplet(x - otherTriplet.x, y - otherTriplet.y, z - otherTriplet.z);
+    }
 
-  __host__ __device__ inline Triplet operator-() const {
-    return Triplet(-x, -y, -z);
-  }
+    __host__ __device__ inline Triplet operator-() const {
+        return Triplet(-x, -y, -z);
+    }
 
-  // *
-  __host__ __device__ inline Triplet operator*(const Triplet &otherTriplet) const {
-    return Triplet(x * otherTriplet.x, y * otherTriplet.y, z * otherTriplet.z);
-  }
+    // *
+    __host__ __device__ inline Triplet operator*(const Triplet &otherTriplet) const {
+        return Triplet(x * otherTriplet.x, y * otherTriplet.y, z * otherTriplet.z);
+    }
 
-  __host__ __device__ inline Triplet operator*=(const Triplet &otherTriplet) {
-    x *= otherTriplet.x;
-    y *= otherTriplet.y;
-    z *= otherTriplet.z;
+    __host__ __device__ inline Triplet operator*=(const Triplet &otherTriplet) {
+        x *= otherTriplet.x;
+        y *= otherTriplet.y;
+        z *= otherTriplet.z;
 
-    return *this;
-  }
+        return *this;
+    }
 
-  __host__ __device__ inline Triplet operator*(double t) const {
-    return Triplet(x * t, y * t, z * t);
-  }
+    __host__ __device__ inline Triplet operator*(double t) const {
+        return Triplet(x * t, y * t, z * t);
+    }
 
-  __host__ __device__ friend inline Triplet operator*(double t, const Triplet &v) {
-    return Triplet(v.x * t, v.y * t, v.z * t);
-  }
+    __host__ __device__ friend inline Triplet operator*(double t, const Triplet &v) {
+        return Triplet(v.x * t, v.y * t, v.z * t);
+    }
 
-  // /
-  __host__ __device__ inline Triplet operator/(double t) const {
-    return Triplet(x / t, y / t, z / t);
-  }
+    // /
+    __host__ __device__ inline Triplet operator/(double t) const {
+        return Triplet(x / t, y / t, z / t);
+    }
 };
 
 struct Vector3 : Triplet {
-  __host__ __device__ inline Vector3() : Triplet(0, 0, 0) {}
+    __host__ __device__ inline Vector3() : Triplet(0, 0, 0) {}
 
-  __host__ __device__ inline Vector3(double x, double y, double z) : Triplet(x, y, z) {}
+    __host__ __device__ inline Vector3(double x, double y, double z) : Triplet(x, y, z) {}
 
-  __host__ __device__ inline Vector3(const Triplet &t) : Triplet(t.x, t.y, t.z) {}
+    __host__ __device__ inline Vector3(const Triplet &t) : Triplet(t.x, t.y, t.z) {}
 
-  __host__ __device__ inline double Length() const {
-    return sqrt(LengthSquared());
-  }
-
-  __host__ __device__ inline double LengthSquared() const {
-    return x * x + y * y + z * z;
-  }
-
-  __device__ static inline Vector3 RandomInUnitSphere(curandState *dCurandState) {
-    while (true) {
-      Vector3 p = Vector3::Random(-1, 1, dCurandState);
-      if (p.LengthSquared() < 1) {
-        return p;
-      }
+    __host__ __device__ inline double Length() const {
+        return sqrt(LengthSquared());
     }
-  }
 
-  __device__ static inline Vector3 RandomUnitVector(curandState *dCurandState) {
-    return UnitVector(RandomInUnitSphere(dCurandState));
-  }
-
-  __device__ static inline Vector3 RandomOnHmisphere(const Vector3 &normal, curandState *dCurandState) {
-    Vector3 onUnitSphere = RandomUnitVector(dCurandState);
-    if (Dot(onUnitSphere, normal) > 0.0) {
-      return onUnitSphere;
-    } else {
-      return -onUnitSphere;
+    __host__ __device__ inline double LengthSquared() const {
+        return x * x + y * y + z * z;
     }
-  }
 
-  __host__ __device__ static inline Vector3 Reflect(const Vector3 &v, const Vector3 &n) {
-    return v - 2 * Dot(v, n) * n;
-  }
+    __device__ static inline Vector3 RandomInUnitSphere(curandState *dCurandState) {
+        while (true) {
+            Vector3 p = Vector3::Random(-1, 1, dCurandState);
+            if (p.LengthSquared() < 1) {
+                return p;
+            }
+        }
+    }
 
-  __host__ __device__ static inline double Dot(const Vector3 &vector1, const Vector3 &vector2) {
-    return vector1.x * vector2.x + vector1.y * vector2.y + vector1.z * vector2.z;
-  }
+    __device__ static inline Vector3 RandomUnitVector(curandState *dCurandState) {
+        return UnitVector(RandomInUnitSphere(dCurandState));
+    }
 
-  __host__ __device__ static inline Vector3 UnitVector(const Vector3 &vector) {
-    return vector / vector.Length();
-  }
+    __device__ static inline Vector3 RandomOnHmisphere(const Vector3 &normal, curandState *dCurandState) {
+        Vector3 onUnitSphere = RandomUnitVector(dCurandState);
+        if (Dot(onUnitSphere, normal) > 0.0) {
+            return onUnitSphere;
+        } else {
+            return -onUnitSphere;
+        }
+    }
 
-  // Operator overloads
-  // +
-  __host__ __device__ inline Vector3 operator+(Vector3 otherVector) const {
-    return Vector3(x + otherVector.x, y + otherVector.y, z + otherVector.z);
-  }
+    __host__ __device__ static inline Vector3 Reflect(const Vector3 &v, const Vector3 &n) {
+        return v - 2 * Dot(v, n) * n;
+    }
 
-  // -
-  __host__ __device__ inline Vector3 operator-(Vector3 otherVector) const {
-    return Vector3(x - otherVector.x, y - otherVector.y, z - otherVector.z);
-  }
+    __host__ __device__ static inline double Dot(const Vector3 &vector1, const Vector3 &vector2) {
+        return vector1.x * vector2.x + vector1.y * vector2.y + vector1.z * vector2.z;
+    }
 
-  __host__ __device__ inline Vector3 operator-() const {
-    return Vector3(-x, -y, -z);
-  }
+    __host__ __device__ static inline Vector3 Cross(const Vector3 &vector1, const Vector3 &vector2) {
+        return Vector3((vector1.y * vector2.z) - (vector1.z * vector2.y),
+                       (vector1.z * vector2.x) - (vector1.x * vector2.z),
+                       (vector1.x * vector2.y) - (vector1.y * vector2.x));
+    }
 
-  // *
-  __host__ __device__ inline Vector3 operator*(Vector3 otherVector) const {
-    return Vector3(x * otherVector.x, y * otherVector.y, z * otherVector.z);
-  }
+    __host__ __device__ static inline Vector3 UnitVector(const Vector3 &vector) {
+        return vector / vector.Length();
+    }
 
-  __host__ __device__ inline Vector3 operator*(double t) const {
-    return Vector3(x * t, y * t, z * t);
-  }
+    // Operator overloads
+    // +
+    __host__ __device__ inline Vector3 operator+(Vector3 otherVector) const {
+        return Vector3(x + otherVector.x, y + otherVector.y, z + otherVector.z);
+    }
 
-  __host__ __device__ friend inline Vector3 operator*(double t, const Vector3 &v) {
-    return Vector3(v.x * t, v.y * t, v.z * t);
-  }
+    // -
+    __host__ __device__ inline Vector3 operator-(Vector3 otherVector) const {
+        return Vector3(x - otherVector.x, y - otherVector.y, z - otherVector.z);
+    }
 
-  // /
-  __host__ __device__ inline Vector3 operator/(double t) const {
-    return Vector3(x / t, y / t, z / t);
-  }
+    __host__ __device__ inline Vector3 operator-() const {
+        return Vector3(-x, -y, -z);
+    }
+
+    // *
+    __host__ __device__ inline Vector3 operator*(Vector3 otherVector) const {
+        return Vector3(x * otherVector.x, y * otherVector.y, z * otherVector.z);
+    }
+
+    __host__ __device__ inline Vector3 operator*(double t) const {
+        return Vector3(x * t, y * t, z * t);
+    }
+
+    __host__ __device__ friend inline Vector3 operator*(double t, const Vector3 &v) {
+        return Vector3(v.x * t, v.y * t, v.z * t);
+    }
+
+    // /
+    __host__ __device__ inline Vector3 operator/(double t) const {
+        return Vector3(x / t, y / t, z / t);
+    }
 };

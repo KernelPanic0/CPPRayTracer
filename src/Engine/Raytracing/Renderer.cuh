@@ -6,6 +6,7 @@
 #include "Sphere.cuh"
 #include <float.h>
 #include "RawSphereData.hpp"
+#include "Triangle.cuh"
 #include <thread>
 
 #ifndef __CUDACC__
@@ -51,7 +52,7 @@ class CudaRenderer {
     void Resize(int width, int height);
     void RequestStop();
     void ClearOutput();
-    void UpdateWorld(const std::vector<RawSphereData> &hWorld);
+    void UpdateWorld(const WorldData &hWorld);
     void FreeWorld();
     ~CudaRenderer();
 

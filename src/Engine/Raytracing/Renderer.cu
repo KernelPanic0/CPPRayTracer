@@ -162,13 +162,16 @@ __host__ void InitialiseProperties(CameraParams &camParams) {
     camParams.pixel00Loc = viewportTopLeft + 0.5 * (camParams.pixelDeltaHorizontal + camParams.pixelDeltaVertical);
 }
 
-__global__ void CreateWorldKernel(Hittable **dHittableList, Hittable **dWorld, RawSphereData *world, size_t size) {
+__global__ void CreateWorldKernel(Hittable **dHittableList, Hittable **dWorld, RawSphereData *spheres, RawTriangleData *triangles, size_t sphereCount, size_t triangleCount, size_t worldSize) {
     if (threadIdx.x == 0 && blockIdx.x == 0) {
-    for (int i = 0; i < size; i++) {
-        *(dHittableList + i) = new Sphere(world[i].center, world[i].radius, world[i].material.Build());
+    for (int i = 0; i < sphereCount; i++) {
+        *(dHittableList + i) = new Sphere(spheres[i].center, spheres[i].radius, spheres[i].material.Build());
+    }
+    for (int i = sphereCount; i < sphereCount + triangleCount; i++) {
+        *(dHittableList + i) = new Triangle(triangles[i].vertices, triangles[i].material.Build());
     }
 
-    *dWorld = new HittableList(dHittableList, size);
+    *dWorld = new HittableList(dHittableList, worldSize);
   }
 }
 
@@ -311,22 +314,26 @@ void CudaRenderer::RequestStop() {
     isRendering = false;
 }
 
-void CudaRenderer::UpdateWorld(const std::vector<RawSphereData> &hWorld) {
+void CudaRenderer::UpdateWorld(const WorldData &hWorld) {
     FreeWorld();
-    worldSize = hWorld.size();
+    worldSize = hWorld.sphereCount + hWorld.triangleCount;
     if (worldSize == 0) return;
 
-    RawSphereData* dWorldData = nullptr;
-    checkCudaErrors(cudaMalloc((void**)&dWorldData, worldSize * sizeof(RawSphereData)));
-    checkCudaErrors(cudaMemcpy(dWorldData, hWorld.data(), worldSize * sizeof(RawSphereData), cudaMemcpyHostToDevice));
+    RawSphereData* dWorldSphereData = nullptr;
+    RawTriangleData* dWorldTriangleData = nullptr;
+    checkCudaErrors(cudaMalloc((void**)&dWorldSphereData, hWorld.sphereCount * sizeof(RawSphereData)));
+    checkCudaErrors(cudaMemcpy(dWorldSphereData, hWorld.spheres, hWorld.sphereCount * sizeof(RawSphereData), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMalloc((void**)&dWorldTriangleData, hWorld.triangleCount * sizeof(RawTriangleData)));
+    checkCudaErrors(cudaMemcpy(dWorldTriangleData, hWorld.spheres, hWorld.triangleCount * sizeof(RawTriangleData), cudaMemcpyHostToDevice));
 
     checkCudaErrors(cudaMalloc((void**)&dObjectList, worldSize * sizeof(Hittable*)));
     checkCudaErrors(cudaMalloc((void**)&dWorld, sizeof(Hittable*)));
 
-    CreateWorldKernel<<<1, 1>>>(dObjectList, dWorld, dWorldData, worldSize);
+    CreateWorldKernel<<<1, 1>>>(dObjectList, dWorld, dWorldSphereData, dWorldTriangleData, hWorld.sphereCount, hWorld.triangleCount, worldSize);
     cudaDeviceSynchronize();
 
-    cudaFree(dWorldData);
+    cudaFree(dWorldSphereData);
+    cudaFree(dWorldTriangleData);
 }
 
 void CudaRenderer::FreeWorld() {
