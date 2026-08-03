@@ -15,40 +15,46 @@ Engine::Engine() : pWindow(std::make_shared<Window>()), pGraphicsManager(std::ma
 
     int numSteps = 700;
 
-    for (int i = 0; i < numSteps; i++) {
-        // Lorenz differential equations:
-        // dx/dt = sigma * (y - x)
-        // dy/dt = x * (rho - z) - y
-        // dz/dt = x * y - beta * z
-        double dx = sigma * (y - x);
-        double dy = x * (rho - z) - y;
-        double dz = x * y - beta * z;
+    // for (int i = 0; i < numSteps; i++) {
+    //     // Lorenz differential equations:
+    //     // dx/dt = sigma * (y - x)
+    //     // dy/dt = x * (rho - z) - y
+    //     // dz/dt = x * y - beta * z
+    //     double dx = sigma * (y - x);
+    //     double dy = x * (rho - z) - y;
+    //     double dz = x * y - beta * z;
 
-        x += dx * dt;
-        y += dy * dt;
-        z += dz * dt;
+    //     x += dx * dt;
+    //     y += dy * dt;
+    //     z += dz * dt;
 
-        // Transform raw coordinates to camera space
-        // Center Z at 25.0 and re-orient axes for best view
-        Vector3 pos(x * scale, (z - 25.0) * scale, -4.5 + (y * scale));
+    //     // Transform raw coordinates to camera space
+    //     // Center Z at 25.0 and re-orient axes for best view
+    //     Vector3 pos(x * scale, (z - 25.0) * scale, -4.5 + (y * scale));
 
-        // Dynamic color gradient across the trajectory (Cyan -> Magenta -> Gold)
-        double progress = (double)i / numSteps;
-        Triplet glowColor(
-            0.5 + 0.5 * std::sin(progress * 6.28),
-            0.3 + 0.3 * std::cos(progress * 6.28),
-            0.8 + 0.2 * std::sin(progress * 3.14));
+    //     // Dynamic color gradient across the trajectory (Cyan -> Magenta -> Gold)
+    //     double progress = (double)i / numSteps;
+    //     Triplet glowColor(
+    //         0.5 + 0.5 * std::sin(progress * 6.28),
+    //         0.3 + 0.3 * std::cos(progress * 6.28),
+    //         0.8 + 0.2 * std::sin(progress * 3.14));
 
-        // Every 3rd step is an emissive light bead; others are polished chrome
-        if (i % 3 == 0) {
-            spheres.push_back({pos, 0.07, {MaterialType::DiffuseLight, glowColor, 0.0, 3.0}});
-        } else {
-            spheres.push_back({pos, 0.05, {MaterialType::Metal, Triplet(0.9, 0.95, 1.0), 0.0}});
-        }
-    }
+    //     // Every 3rd step is an emissive light bead; others are polished chrome
+    //     if (i % 3 == 0) {
+    //         spheres.push_back({pos, 0.07, {MaterialType::DiffuseLight, glowColor, 0.0, 3.0}});
+    //     } else {
+    //         spheres.push_back({pos, 0.05, {MaterialType::Metal, Triplet(0.9, 0.95, 1.0), 0.0}});
+    //     }
+    // }
 
+    triangles.push_back({{Vector3(0, -1, -4.5),
+                          Vector3(-1, -2, -5.5),
+                          Vector3(1, -2, -4.5)},
+                         {MaterialType::DiffuseLight, Triplet(1, 0.08, 0.01), 0.0, 5.0}});
     world.spheres = spheres.data();
     world.sphereCount = spheres.size();
+    world.triangles = triangles.data();
+    world.triangleCount = triangles.size();
 }
 
 void Engine::RenderFrame() {

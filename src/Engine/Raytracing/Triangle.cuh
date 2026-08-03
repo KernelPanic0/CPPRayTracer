@@ -51,6 +51,6 @@ class Triangle : public Hittable {
         return true;
     }
     __host__ __device__ inline Triangle(Vector3 _vertices[3], Material *material) : vertices{_vertices[0], _vertices[1], _vertices[2]}, material(material) {
-        normal = Vector3::Cross(vertices[1] - vertices[0], vertices[2] - vertices[0]);
+        normal = Vector3::Cross(_vertices[1] - _vertices[0], _vertices[2] - _vertices[0]);
     }
 };
