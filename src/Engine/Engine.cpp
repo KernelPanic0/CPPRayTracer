@@ -4,6 +4,7 @@ Engine::Engine() : pWindow(std::make_shared<Window>()), pGraphicsManager(std::ma
     // 1. Mirrored dark stage & soft ambient light
     spheres.push_back({Vector3(0, -50002.5, -4), 50000.0, {MaterialType::Lambertian, Triplet(0.08, 0.08, 0.1)}}); // Floor
     spheres.push_back({Vector3(0, 10, -4), 3.0, {MaterialType::DiffuseLight, Triplet(1, 1, 1), 0.0, 0.8}});       // Soft overhead
+    spheres.push_back({Vector3(0, -1, -6), 1.0, {MaterialType::Metal, Triplet(0.08, 0.08, 0.1), 0.01}});
 
     // 2. Lorenz System Parameters
     double x = 0.1, y = 0.0, z = 0.0;
@@ -47,14 +48,18 @@ Engine::Engine() : pWindow(std::make_shared<Window>()), pGraphicsManager(std::ma
     //     }
     // }
 
-    triangles.push_back({{Vector3(0, -1, -4.5),
-                          Vector3(-1, -2, -5.5),
-                          Vector3(1, -2, -4.5)},
-                         {MaterialType::DiffuseLight, Triplet(1, 0.08, 0.01), 0.0, 5.0}});
+    triangles.push_back({{Vector3(0, -1, -4.5), Vector3(-1, -2, -4.5), Vector3(1, -2, -4.5)}, {MaterialType::DiffuseLight, Triplet(1, 0.08, 0.01), 0.0, 15.0}});
+    triangles.push_back({{Vector3(0, -3, -4.5), Vector3(-1, -2, -4.5), Vector3(1, -2, -4.5)}, {MaterialType::DiffuseLight, Triplet(0, 1.00, 0.01), 0.0, 15.0}});
+    models.push_back({triangles.data(), triangles.size()});
+
     world.spheres = spheres.data();
     world.sphereCount = spheres.size();
+
     world.triangles = triangles.data();
     world.triangleCount = triangles.size();
+
+    world.models = models.data();
+    world.modelCount = models.size();
 }
 
 void Engine::RenderFrame() {

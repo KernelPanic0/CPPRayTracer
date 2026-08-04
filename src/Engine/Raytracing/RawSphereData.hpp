@@ -37,9 +37,16 @@ struct RawSphereData {
     RawMaterialData material;
 };
 
+struct RawModelData {
+    RawTriangleData *triangles = nullptr;
+    int triangleCount = 0;
+};
+
 struct WorldData {
     RawSphereData *spheres = nullptr;
     int sphereCount = 0;
     RawTriangleData *triangles = nullptr;
     int triangleCount = 0;
+    RawModelData *models = nullptr;
+    int modelCount = 0;
 };

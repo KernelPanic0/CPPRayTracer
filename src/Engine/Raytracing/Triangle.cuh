@@ -19,8 +19,9 @@ class Triangle : public Hittable {
         Vector3 edge1 = vertices[1] - vertices[0];
         Vector3 edge2 = vertices[2] - vertices[0];
 
-        Vector3 p = Vector3::Cross(ray.direction, edge2);
-        double det = Vector3::Dot(edge1, p);
+        // calculate determinate via scalar triple product
+        Vector3 edge2DirCross = Vector3::Cross(ray.direction, edge2);
+        double det = Vector3::Dot(edge1, edge2DirCross);
 
         if (!rayT.Surrounds(abs(det)))
             return false;
@@ -28,7 +29,7 @@ class Triangle : public Hittable {
         double invDet = 1 / det;
         Vector3 tVec = ray.origin - vertices[0];
 
-        double u = Vector3::Dot(tVec, p) * invDet;
+        double u = Vector3::Dot(tVec, edge2DirCross) * invDet;
         if (u < 0 || u > 1)
             return false;
 

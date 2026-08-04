@@ -12,6 +12,7 @@ class Engine {
     std::unique_ptr<ActiveRenderer> pRenderer;
     std::vector<RawSphereData> spheres;
     std::vector<RawTriangleData> triangles;
+    std::vector<RawModelData> models;
     WorldData world;
 
   public:
