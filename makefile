@@ -38,6 +38,7 @@ SRC := ./src/main.cpp \
     ./src/GLFW/Window.cpp \
     ./src/GLFW/Input.cpp \
 	./src/Engine/Engine.cpp \
+	./src/Engine/OBJParser.cpp \
     ./src/Engine/Graphics/GraphicsManager.cpp \
     ./src/Engine/Graphics/Buffers.cpp \
     ./includes/stb_image_write.c \

@@ -2,6 +2,7 @@
 #include "../GLFW/Input.hpp"
 #include "./Graphics/GraphicsManager.hpp"
 #include "Raytracing/Renderer.hpp"
+#include "OBJParser.hpp"
 #include <omp.h>
 
 class Engine {
@@ -12,8 +13,8 @@ class Engine {
     std::unique_ptr<ActiveRenderer> pRenderer;
     std::vector<RawSphereData> spheres;
     std::vector<RawTriangleData> triangles;
-    std::vector<RawModelData> models;
     WorldData world;
+    OBJParser objParser;
 
   public:
     Engine();

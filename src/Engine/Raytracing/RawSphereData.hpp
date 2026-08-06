@@ -47,6 +47,4 @@ struct WorldData {
     int sphereCount = 0;
     RawTriangleData *triangles = nullptr;
     int triangleCount = 0;
-    RawModelData *models = nullptr;
-    int modelCount = 0;
 };
