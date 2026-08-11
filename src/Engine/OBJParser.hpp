@@ -5,6 +5,9 @@
 #include <ranges>
 #include <sstream>
 #include "Raytracing/Renderer.hpp"
+#include <boost/algorithm/string.hpp>
+#include <iostream>
+#include <string>
 
 class OBJParser {
   public:
