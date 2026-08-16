@@ -32,15 +32,15 @@ std::vector<RawTriangleData> OBJParser::ReadFile(const char *path) {
 
             std::vector<std::string> indices;
             boost::split(indices, x, boost::is_any_of("/"));
-            Vector3 vx = vertices[std::stoi(indices[0]) + 1];
+            Vector3 vx = vertices[std::stoi(indices[0]) - 1];
 
             indices.resize(0);
             boost::split(indices, y, boost::is_any_of("/"));
-            Vector3 vy = vertices[std::stoi(indices[0]) + 1];
+            Vector3 vy = vertices[std::stoi(indices[0]) - 1];
 
             indices.resize(0);
             boost::split(indices, z, boost::is_any_of("/"));
-            Vector3 vz = vertices[std::stoi(indices[0]) + 1];
+            Vector3 vz = vertices[std::stoi(indices[0]) - 1];
 
             triangles.push_back({{vx, vy, vz}, {MaterialType::Metal, Triplet(0.60, 0.06, 0.11), 0.5}}); // this needs to be done better too
         }

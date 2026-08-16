@@ -1,10 +1,11 @@
 #pragma once
+#include "hip/hip_runtime.h"
 #include <limits>
 #include <math.h>
 #include <random>
-#include <curand_kernel.h>
+#include <hiprand/hiprand_kernel.h>
 
-#ifndef __CUDACC__
+#ifndef __HIPCC__
 #define __host__
 #define __device__
 #endif

@@ -1,4 +1,5 @@
 #pragma once
+#include "hip/hip_runtime.h"
 #include <iostream>
 #include <stdint.h>
 #include "Vector.cuh"
@@ -9,7 +10,7 @@
 #include "Triangle.cuh"
 #include <thread>
 
-#ifndef __CUDACC__
+#ifndef __HIPCC__
 #define __host__
 #define __device__
 #define __global__
@@ -58,19 +59,19 @@ class CudaRenderer {
 
   private:
     int numPixels;
-    cudaStream_t streams[numStreams];
+    hipStream_t streams[numStreams];
 
     bool *dStopRequested = nullptr;
     Triplet *dAccumulationBuffer = nullptr;
     uint8_t *dFramebuffer = nullptr;
-    curandState *dRandState = nullptr;
+    hiprandState *dRandState = nullptr;
     Hittable **dObjectList = nullptr;
     Hittable **dWorld = nullptr;
     size_t worldSize = 0;
 };
 
-__device__ Triplet RayColor(Hittable **world, Ray &ray, int depth, curandState *dCurandState, RenderStatistics *renderStats);
-__device__ Ray GetRay(int i, int j, CameraParams camParams, curandState *dCurandState);
-__device__ Vector3 PixelSampleSquare(CameraParams camParams, curandState *dCurandState);
+__device__ Triplet RayColor(Hittable **world, Ray &ray, int depth, hiprandState *dCurandState, RenderStatistics *renderStats);
+__device__ Ray GetRay(int i, int j, CameraParams camParams, hiprandState *dCurandState);
+__device__ Vector3 PixelSampleSquare(CameraParams camParams, hiprandState *dCurandState);
 __device__ double ComputeColor(double color, int samplesPerPixel);
 __host__ void InitialiseProperties(CameraParams &camParams);

@@ -2,14 +2,14 @@
 #include "HitRecord.cuh"
 #include "Ray.cuh"
 
-#ifndef __CUDACC__
+#ifndef __HIPCC__
 #define __host__
 #define __device__
 #endif
 
 class Material {
 public:
-  __device__ virtual bool Scatter(Ray rayIn, HitRecord hitRecord, Triplet &attenuation, Ray &scattered, curandState *dCurandState) = 0;
+  __device__ virtual bool Scatter(Ray rayIn, HitRecord hitRecord, Triplet &attenuation, Ray &scattered, hiprandState *dCurandState) = 0;
   __device__ virtual inline Triplet Emitted(double u, double v, Vector3 point) {
     return Triplet(0, 0, 0);
   }
@@ -24,7 +24,7 @@ public:
 
   __device__ inline Lambertian(Triplet albedo) : albedo(albedo) {}
 
-  __device__ inline bool Scatter(Ray rayIn, HitRecord hitRecord, Triplet &attenuation, Ray &scattered, curandState *dCurandState) override {
+  __device__ inline bool Scatter(Ray rayIn, HitRecord hitRecord, Triplet &attenuation, Ray &scattered, hiprandState *dCurandState) override {
     Vector3 scatterDirection = hitRecord.normal + Vector3::RandomUnitVector(dCurandState);
 
     if (scatterDirection.NearZero())
@@ -46,7 +46,7 @@ public:
 
   __device__ inline Metal(Triplet albedo) : albedo(albedo), fuzz(0) {}
 
-  __device__ inline bool Scatter(Ray rayIn, HitRecord hitRecord, Triplet &attenuation, Ray &scattered, curandState *dCurandState) override {
+  __device__ inline bool Scatter(Ray rayIn, HitRecord hitRecord, Triplet &attenuation, Ray &scattered, hiprandState *dCurandState) override {
     Vector3 reflected = Vector3::Reflect(Vector3::UnitVector(rayIn.direction), hitRecord.normal);
     scattered = Ray(hitRecord.point, reflected + fuzz * Vector3::RandomUnitVector(dCurandState));
     attenuation = albedo;
@@ -62,7 +62,7 @@ private:
 public:
   __device__ inline DiffuseLight(Triplet emit, double intensity) : emit(emit), intensity(intensity) {}
 
-  __device__ inline bool Scatter(Ray rayIn, HitRecord hitRecord, Triplet &attenuation, Ray &scattered, curandState *dCurandState) override {
+  __device__ inline bool Scatter(Ray rayIn, HitRecord hitRecord, Triplet &attenuation, Ray &scattered, hiprandState *dCurandState) override {
     return false;
   }
 

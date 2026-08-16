@@ -9,7 +9,7 @@
 #include <unordered_map>
 #include <vector>
 
-#ifndef __CUDACC__
+#ifndef __HIPCC__
 #define __device__
 #endif
 

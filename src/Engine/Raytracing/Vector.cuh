@@ -1,9 +1,10 @@
 #pragma once
+#include "hip/hip_runtime.h"
 #include "Constants.cuh"
 #include <math.h>
 #include <random>
 
-#ifndef __CUDACC__
+#ifndef __HIPCC__
 #define __host__
 #define __device__
 #endif
@@ -15,17 +16,17 @@ struct Triplet {
     __host__ __device__ Triplet() = default;
     __host__ __device__ Triplet(double x, double y, double z) : x(x), y(y), z(z) {}
 
-    __device__ static inline Triplet Random(curandState *dCurandState) {
-        double x = curand_uniform(dCurandState);
-        double y = curand_uniform(dCurandState);
-        double z = curand_uniform(dCurandState);
+    __device__ static inline Triplet Random(hiprandState *dCurandState) {
+        double x = hiprand_uniform(dCurandState);
+        double y = hiprand_uniform(dCurandState);
+        double z = hiprand_uniform(dCurandState);
         return Triplet(x, y, z);
     }
 
-    __device__ static inline Triplet Random(double min, double max, curandState *dCurandState) {
-        double x = curand_uniform(dCurandState) * (max - min) + min;
-        double y = curand_uniform(dCurandState) * (max - min) + min;
-        double z = curand_uniform(dCurandState) * (max - min) + min;
+    __device__ static inline Triplet Random(double min, double max, hiprandState *dCurandState) {
+        double x = hiprand_uniform(dCurandState) * (max - min) + min;
+        double y = hiprand_uniform(dCurandState) * (max - min) + min;
+        double z = hiprand_uniform(dCurandState) * (max - min) + min;
         return Triplet(x, y, z);
     }
 
@@ -98,7 +99,7 @@ struct Vector3 : Triplet {
         return x * x + y * y + z * z;
     }
 
-    __device__ static inline Vector3 RandomInUnitSphere(curandState *dCurandState) {
+    __device__ static inline Vector3 RandomInUnitSphere(hiprandState *dCurandState) {
         while (true) {
             Vector3 p = Vector3::Random(-1, 1, dCurandState);
             if (p.LengthSquared() < 1) {
@@ -107,11 +108,11 @@ struct Vector3 : Triplet {
         }
     }
 
-    __device__ static inline Vector3 RandomUnitVector(curandState *dCurandState) {
+    __device__ static inline Vector3 RandomUnitVector(hiprandState *dCurandState) {
         return UnitVector(RandomInUnitSphere(dCurandState));
     }
 
-    __device__ static inline Vector3 RandomOnHmisphere(const Vector3 &normal, curandState *dCurandState) {
+    __device__ static inline Vector3 RandomOnHmisphere(const Vector3 &normal, hiprandState *dCurandState) {
         Vector3 onUnitSphere = RandomUnitVector(dCurandState);
         if (Dot(onUnitSphere, normal) > 0.0) {
             return onUnitSphere;

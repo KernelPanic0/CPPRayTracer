@@ -3,7 +3,7 @@
 #include "Vector.cuh"
 #include "Ray.cuh"
 
-#ifndef __CUDACC__
+#ifndef __HIPCC__
 #define __host__
 #define __device__
 #endif

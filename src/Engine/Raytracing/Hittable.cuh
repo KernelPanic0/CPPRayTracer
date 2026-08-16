@@ -1,4 +1,5 @@
 #pragma once
+#include "hip/hip_runtime.h"
 #include "Interval.cuh"
 #include "HitRecord.cuh"
 #include "Material.cuh"

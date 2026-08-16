@@ -1,7 +1,7 @@
 #pragma once
 #include "Vector.cuh"
 
-#ifndef __CUDACC__
+#ifndef __HIPCC__
 #define __host__
 #define __device__
 #endif

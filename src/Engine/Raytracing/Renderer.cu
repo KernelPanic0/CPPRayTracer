@@ -1,35 +1,36 @@
 #include "Renderer.cuh"
+#include "hip/hip_runtime.h"
 
 // clang-format off
-// CUDA
+// HIP
 
-#define checkCudaErrors(val) check_cuda((val), #val, __FILE__, __LINE__)
-void check_cuda(cudaError_t result, char const *const func, const char *const file, int const line) {
+#define checkHipErrors(val) check_hip((val), #val, __FILE__, __LINE__)
+void check_hip(hipError_t result, char const *const func, const char *const file, int const line) {
   if (result) {
-    std::cerr << "CUDA error = " << static_cast<unsigned int>(result) << " at " << file << ":" << line << " '" << func << "' \n";
-    // Make sure we call CUDA Device Reset before exiting
-    cudaDeviceReset();
+    std::cerr << "HIP error = " << static_cast<unsigned int>(result) << " at " << file << ":" << line << " '" << func << "' \n";
+    // Make sure we call HIP Device Reset before exiting
+    hipDeviceReset();
     exit(99);
   }
 }
-__global__ void InitRandom(int maxX, int maxY, curandState *dCurandState) {
+__global__ void InitRandom(int maxX, int maxY, hiprandState *dCurandState) {
     int x = threadIdx.x + blockIdx.x * blockDim.x;
     int y = threadIdx.y + blockIdx.y * blockDim.y;
 
     if ((x >= maxX) || (y >= maxY)) return;
 
     int pixelIndex = y * maxX + x;
-    curand_init(1984, pixelIndex, 0, &dCurandState[pixelIndex]);
+    hiprand_init(1984, pixelIndex, 0, &dCurandState[pixelIndex]);
 }
 
-__global__ void RenderSampleKernel(uint8_t *fb, Triplet *accumBuffer, Hittable **world, int maxX, int maxY, CameraParams camParams, curandState *dCurandSate, int sample, RenderStatistics* renderStats) {
+__global__ void RenderSampleKernel(uint8_t *fb, Triplet *accumBuffer, Hittable **world, int maxX, int maxY, CameraParams camParams, hiprandState *dCurandSate, int sample, RenderStatistics* renderStats) {
     int x = threadIdx.x + blockIdx.x * blockDim.x;
     int y = threadIdx.y + blockIdx.y * blockDim.y;
 
     if ((x >= maxX) || (y >= maxY)) return;
 
     int pixelIndex = y * maxX + x;
-    curandState localRandState = dCurandSate[pixelIndex];
+    hiprandState localRandState = dCurandSate[pixelIndex];
 
     Triplet pixelColor(0, 0, 0);
     Ray ray = GetRay(x, y, camParams, &localRandState);
@@ -50,18 +51,18 @@ __global__ void RenderSampleKernel(uint8_t *fb, Triplet *accumBuffer, Hittable *
     fb[pixelIndex * 3 + 0] = (uint8_t)r;
     fb[pixelIndex * 3 + 1] = (uint8_t)g;
     fb[pixelIndex * 3 + 2] = (uint8_t)b;
-    
+
     dCurandSate[pixelIndex] = localRandState;
 }
 
-__global__ void RenderBucketKernel(uint8_t *fb, Hittable **world, int maxX, int maxY, CameraParams camParams, curandState *dCurandSate, int startX, int startY, bool* stopRequested, RenderStatistics* renderStats) {
+__global__ void RenderBucketKernel(uint8_t *fb, Hittable **world, int maxX, int maxY, CameraParams camParams, hiprandState *dCurandSate, int startX, int startY, bool* stopRequested, RenderStatistics* renderStats) {
     int x = startX + threadIdx.x + blockIdx.x * blockDim.x;
     int y = startY + threadIdx.y + blockIdx.y * blockDim.y;
 
     if ((x >= maxX) || (y >= maxY)) return;
 
     int pixelIndex = y * maxX + x;
-    curandState localRandState = dCurandSate[pixelIndex];
+    hiprandState localRandState = dCurandSate[pixelIndex];
 
     Triplet pixelColor(0, 0, 0);
     for (int sample = 0; sample < camParams.samplesPerPixel; sample++) {
@@ -78,7 +79,7 @@ __global__ void RenderBucketKernel(uint8_t *fb, Hittable **world, int maxX, int 
     fb[pixelIndex * 3 + 2] = (uint8_t)b;
 }
 
-__device__ Ray GetRay(int i, int j, CameraParams camParams, curandState *dCurandState) {
+__device__ Ray GetRay(int i, int j, CameraParams camParams, hiprandState *dCurandState) {
     Vector3 pixelCentre = (Vector3)camParams.pixel00Loc + (i * camParams.pixelDeltaHorizontal) + (j * camParams.pixelDeltaVertical);
     Vector3 pixelSample = pixelCentre + PixelSampleSquare(camParams, dCurandState);
     Vector3 rayOrigin = camParams.center;
@@ -87,7 +88,7 @@ __device__ Ray GetRay(int i, int j, CameraParams camParams, curandState *dCurand
     return Ray(rayOrigin, rayDirection);
 }
 
-__device__ Triplet RayColor(Hittable **world, Ray &ray, int depth, curandState *dCurandState, RenderStatistics* renderStats) {
+__device__ Triplet RayColor(Hittable **world, Ray &ray, int depth, hiprandState *dCurandState, RenderStatistics* renderStats) {
     HitRecord hitRecord;
     Interval rayTInterval(0.001, FLT_MAX);
 
@@ -126,9 +127,9 @@ __device__ Triplet RayColor(Hittable **world, Ray &ray, int depth, curandState *
     return accumulation;
 }
 
-__device__ Vector3 PixelSampleSquare(CameraParams camParams, curandState *dCurandState) {
-    double pX = -0.5 + curand_uniform(dCurandState);
-    double pY = -0.5 + curand_uniform(dCurandState);
+__device__ Vector3 PixelSampleSquare(CameraParams camParams, hiprandState *dCurandState) {
+    double pX = -0.5 + hiprand_uniform(dCurandState);
+    double pY = -0.5 + hiprand_uniform(dCurandState);
 
     return (pX * camParams.pixelDeltaHorizontal) + (pY * camParams.pixelDeltaVertical);
 }
@@ -194,20 +195,20 @@ CudaRenderer::CudaRenderer(int width, int height) {
     dObjectList = nullptr;
     hOutputBuffer = nullptr;
 
-    checkCudaErrors(cudaMalloc(&dStopRequested, sizeof(bool)));
-    checkCudaErrors(cudaMemset(dStopRequested, 0, sizeof(bool)));
-    checkCudaErrors(cudaMallocHost(&progress, sizeof(float)));
-    checkCudaErrors(cudaMallocManaged(&renderStats, sizeof(RenderStatistics)));
+    checkHipErrors(hipMalloc(&dStopRequested, sizeof(bool)));
+    checkHipErrors(hipMemset(dStopRequested, 0, sizeof(bool)));
+    checkHipErrors(hipHostMalloc(&progress, sizeof(float)));
+    checkHipErrors(hipMallocManaged(&renderStats, sizeof(RenderStatistics)));
 
     for (int i = 0; i < numStreams; i++) {
-        checkCudaErrors(cudaStreamCreate(&streams[i]));
+        checkHipErrors(hipStreamCreate(&streams[i]));
     }
 
     Resize(width, height);
 }
 
 void CudaRenderer::RenderAccumulation() {
-    cudaMemset(dAccumulationBuffer, 0, camParams.imageWidth * camParams.imageHeight * sizeof(Triplet));
+    hipMemset(dAccumulationBuffer, 0, camParams.imageWidth * camParams.imageHeight * sizeof(Triplet));
 
     isRendering = true;
     canvasEmpty = false;
@@ -217,8 +218,8 @@ void CudaRenderer::RenderAccumulation() {
     for (int i = 1; i < camParams.samplesPerPixel; i++) {
         RenderSampleKernel<<<blocks, threads>>>(dFramebuffer, dAccumulationBuffer, dWorld, camParams.imageWidth, camParams.imageHeight, camParams, dRandState, i, renderStats);
 
-        checkCudaErrors(cudaDeviceSynchronize());
-        checkCudaErrors(cudaMemcpy(hOutputBuffer, dFramebuffer, numPixels * 3 * sizeof(uint8_t), cudaMemcpyDeviceToHost));    
+        checkHipErrors(hipDeviceSynchronize());
+        checkHipErrors(hipMemcpy(hOutputBuffer, dFramebuffer, numPixels * 3 * sizeof(uint8_t), hipMemcpyDeviceToHost));
         *progress = (float)i/(float)camParams.samplesPerPixel;
     }
     isRendering = false;
@@ -238,7 +239,7 @@ void CudaRenderer::RenderFrame() {
 
             dim3 blocks((currentBucketWidth + threads.x - 1) / threads.x, (currentBucketHeight + threads.y - 1) / threads.y);
 
-            cudaStream_t currentStream = streams[streamIdx];
+            hipStream_t currentStream = streams[streamIdx];
 
             RenderBucketKernel<<<blocks, threads, 0, currentStream>>>(dFramebuffer, dWorld, camParams.imageWidth, camParams.imageHeight, camParams, dRandState, x, y, dStopRequested, renderStats);
 
@@ -248,30 +249,30 @@ void CudaRenderer::RenderFrame() {
             uint8_t* dSrc = dFramebuffer + offset;
             uint8_t* hDst = hOutputBuffer + offset;
 
-            checkCudaErrors(cudaMemcpy2DAsync(
-                hDst,                                 
-                pitch,                                
-                dSrc,                                 
-                pitch,                                
+            checkHipErrors(hipMemcpy2DAsync(
+                hDst,
+                pitch,
+                dSrc,
+                pitch,
                 currentBucketWidth * 3 * sizeof(uint8_t),
                 currentBucketHeight,
-                cudaMemcpyDeviceToHost,
+                hipMemcpyDeviceToHost,
                 currentStream
             ));
 
             float currentProgress = *progress + currentBucketWidth * currentBucketHeight / ((float)camParams.imageWidth * (float)camParams.imageHeight);
-            checkCudaErrors(cudaMemcpyAsync(
+            checkHipErrors(hipMemcpyAsync(
                 progress,
                 &currentProgress,
                 sizeof(float),
-                cudaMemcpyHostToHost
+                hipMemcpyHostToHost
             ));
 
             streamIdx = (streamIdx + 1) % numStreams;
         }
     }
 
-    checkCudaErrors(cudaDeviceSynchronize());
+    checkHipErrors(hipDeviceSynchronize());
     isRendering = false;
 }
 
@@ -284,33 +285,33 @@ void CudaRenderer::Resize(int width, int height) {
 
     numPixels = width * height;
 
-    cudaMemset(progress, 0.0f, sizeof(float));
+    hipMemset(progress, 0.0f, sizeof(float));
     canvasEmpty = true;
     if (hOutputBuffer) {
-        checkCudaErrors(cudaFreeHost(hOutputBuffer));
-        checkCudaErrors(cudaFree(dAccumulationBuffer));
+        checkHipErrors(hipHostFree(hOutputBuffer));
+        checkHipErrors(hipFree(dAccumulationBuffer));
         hOutputBuffer = nullptr;
     }
 
     // PINNED host memory
-    checkCudaErrors(cudaMallocHost((void**)&hOutputBuffer, numPixels * 3 * sizeof(uint8_t)));
-    checkCudaErrors(cudaMalloc(&dAccumulationBuffer, numPixels * sizeof(Triplet)));
+    checkHipErrors(hipHostMalloc((void**)&hOutputBuffer, numPixels * 3 * sizeof(uint8_t)));
+    checkHipErrors(hipMalloc(&dAccumulationBuffer, numPixels * sizeof(Triplet)));
 
 
-    if (dFramebuffer) cudaFree(dFramebuffer);
-    if (dRandState) cudaFree(dRandState);
+    if (dFramebuffer) hipFree(dFramebuffer);
+    if (dRandState) hipFree(dRandState);
 
-    checkCudaErrors(cudaMalloc((void**)&dFramebuffer, numPixels * 3 * sizeof(uint8_t)));
-    checkCudaErrors(cudaMalloc((void**)&dRandState, numPixels * sizeof(curandState)));
+    checkHipErrors(hipMalloc((void**)&dFramebuffer, numPixels * 3 * sizeof(uint8_t)));
+    checkHipErrors(hipMalloc((void**)&dRandState, numPixels * sizeof(hiprandState)));
 
     dim3 threads(16, 16);
     dim3 blocks((width + threads.x - 1) / threads.x, (height + threads.y - 1) / threads.y);
     InitRandom<<<blocks, threads>>>(width, height, dRandState);
-    cudaDeviceSynchronize();
+    hipDeviceSynchronize();
 }
 
 void CudaRenderer::RequestStop() {
-    // checkCudaErrors(cudaMemset(dStopRequested, true, sizeof(bool))); // implement later
+    // checkHipErrors(hipMemset(dStopRequested, true, sizeof(bool))); // implement later
     isRendering = false;
 }
 
@@ -321,27 +322,27 @@ void CudaRenderer::UpdateWorld(const WorldData &hWorld) {
 
     RawSphereData* dWorldSphereData = nullptr;
     RawTriangleData* dWorldTriangleData = nullptr;
-    checkCudaErrors(cudaMalloc((void**)&dWorldSphereData, hWorld.sphereCount * sizeof(RawSphereData)));
-    checkCudaErrors(cudaMemcpy(dWorldSphereData, hWorld.spheres, hWorld.sphereCount * sizeof(RawSphereData), cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMalloc((void**)&dWorldTriangleData, hWorld.triangleCount * sizeof(RawTriangleData)));
-    checkCudaErrors(cudaMemcpy(dWorldTriangleData, hWorld.triangles, hWorld.triangleCount * sizeof(RawTriangleData), cudaMemcpyHostToDevice));
+    checkHipErrors(hipMalloc((void**)&dWorldSphereData, hWorld.sphereCount * sizeof(RawSphereData)));
+    checkHipErrors(hipMemcpy(dWorldSphereData, hWorld.spheres, hWorld.sphereCount * sizeof(RawSphereData), hipMemcpyHostToDevice));
+    checkHipErrors(hipMalloc((void**)&dWorldTriangleData, hWorld.triangleCount * sizeof(RawTriangleData)));
+    checkHipErrors(hipMemcpy(dWorldTriangleData, hWorld.triangles, hWorld.triangleCount * sizeof(RawTriangleData), hipMemcpyHostToDevice));
 
-    checkCudaErrors(cudaMalloc((void**)&dObjectList, worldSize * sizeof(Hittable*)));
-    checkCudaErrors(cudaMalloc((void**)&dWorld, sizeof(Hittable*)));
+    checkHipErrors(hipMalloc((void**)&dObjectList, worldSize * sizeof(Hittable*)));
+    checkHipErrors(hipMalloc((void**)&dWorld, sizeof(Hittable*)));
 
     CreateWorldKernel<<<1, 1>>>(dObjectList, dWorld, dWorldSphereData, dWorldTriangleData, hWorld.sphereCount, hWorld.triangleCount, worldSize);
-    cudaDeviceSynchronize();
+    hipDeviceSynchronize();
 
-    cudaFree(dWorldSphereData);
-    cudaFree(dWorldTriangleData);
+    hipFree(dWorldSphereData);
+    hipFree(dWorldTriangleData);
 }
 
 void CudaRenderer::FreeWorld() {
     if (dWorld && worldSize > 0) {
         FreeWorldKernel<<<1, 1>>>(dObjectList, dWorld, worldSize);
-        cudaDeviceSynchronize();
-        cudaFree(dObjectList);
-        cudaFree(dWorld);
+        hipDeviceSynchronize();
+        hipFree(dObjectList);
+        hipFree(dWorld);
         dObjectList = nullptr;
         dWorld = nullptr;
         worldSize = 0;
@@ -350,14 +351,14 @@ void CudaRenderer::FreeWorld() {
 
 CudaRenderer::~CudaRenderer() {
     FreeWorld();
-    if (dFramebuffer) cudaFree(dFramebuffer);
-    if (dRandState) cudaFree(dRandState);
+    if (dFramebuffer) hipFree(dFramebuffer);
+    if (dRandState) hipFree(dRandState);
 
     if (hOutputBuffer) {
-        cudaFreeHost(hOutputBuffer);
+        hipHostFree(hOutputBuffer);
     }
 
     for (int i = 0; i < numStreams; i++) {
-        cudaStreamDestroy(streams[i]);
+        hipStreamDestroy(streams[i]);
     }
 }
