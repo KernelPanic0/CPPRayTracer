@@ -2,7 +2,7 @@
 
 Engine::Engine() : pWindow(std::make_shared<Window>()), pGraphicsManager(std::make_unique<GraphicsManager>()), pUserInterface(std::make_unique<UI>(pWindow)), pRenderer(std::make_unique<ActiveRenderer>(400, 225)), objParser(OBJParser()) {
     spheres.push_back({Vector3(0, -50002.5, -4), 50000.0, {MaterialType::Lambertian, Triplet(0.08, 0.08, 0.1)}}); // Floor
-    spheres.push_back({Vector3(0, 6.5, -4), 3.0, {MaterialType::DiffuseLight, Triplet(1, 1, 1), 0.0, 2.8}});      // Soft overhead
+    spheres.push_back({Vector3(0, 5.5, -1), 3.0, {MaterialType::DiffuseLight, Triplet(1, 1, 1), 0.0, 5}});        // Soft overhead
     spheres.push_back({Vector3(-4, -1, -6), 1.0, {MaterialType::Metal, Triplet(0.08, 0.08, 0.1), 0.01}});
     spheres.push_back({Vector3(4, -1, -6), 1.0, {MaterialType::DiffuseLight, Triplet(0.08, 0.98, 0.1), 0.01}});
 

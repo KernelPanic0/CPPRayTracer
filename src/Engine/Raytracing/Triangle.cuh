@@ -46,8 +46,9 @@ class Triangle : public Hittable {
 
         hitRecord.t = t;
         hitRecord.point = ray.At(hitRecord.t);
-        hitRecord.normal = normal;
-        hitRecord.frontFace;
+        // hitRecord.normal = normal;
+        hitRecord.SetFaceNormal(ray, normal);
+
         hitRecord.material = material;
 
         return true;
