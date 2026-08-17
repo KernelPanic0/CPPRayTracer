@@ -23,7 +23,7 @@ std::vector<RawTriangleData> OBJParser::ReadFile(const char *path) {
             double x, y, z;
             iss >> x >> y >> z;
 
-            vertices.emplace_back(x, y, z);
+            vertices.emplace_back(x, y - 2, z - 5);
         } else {
             std::string dummy;
             iss >> dummy;
@@ -59,18 +59,18 @@ std::vector<RawTriangleData> OBJParser::ReadFile(const char *path) {
             double vz_Y = vz.x * ColOne.y + vz.y * ColTwo.y + vz.z * ColThree.y;
             double vz_Z = vz.x * ColOne.z + vz.y * ColTwo.z + vz.z * ColThree.z;
 
-            vx.x = vx_X;
-            vx.y = vx_Y - 2;
-            vx.z = vx_Z - 5;
+            // vx.x = vx_X;
+            // vx.y = vx_Y - 2;
+            // vx.z = vx_Z - 5;
 
-            vy.x = vy_X;
-            vy.y = vy_Y - 2;
-            vy.z = vy_Z - 5;
+            // vy.x = vy_X;
+            // vy.y = vy_Y - 2;
+            // vy.z = vy_Z - 5;
 
-            vz.x = vz_X;
-            vz.y = vz_Y - 2;
-            vz.z = vz_Z - 5;
-            triangles.push_back({{vx, vy, vz}, {MaterialType::Lambertian, Triplet(0.60, 0.06, 0.11)}}); // this needs to be done better too
+            // vz.x = vz_X;
+            // vz.y = vz_Y - 2;
+            // vz.z = vz_Z - 5;
+            triangles.push_back({{vx, vy, vz}, {MaterialType::Metal, Triplet(0.60, 0.06, 0.11), 0.5}}); // this needs to be done better too
         }
 
         if (lineNumber % 3 == 2) {

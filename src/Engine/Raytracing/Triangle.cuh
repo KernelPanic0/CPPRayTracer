@@ -41,7 +41,7 @@ class Triangle : public Hittable {
             return false;
 
         double t = Vector3::Dot(edge2, q) * invDet;
-        if (t < 0)
+        if (!rayT.Surrounds(t))
             return false;
 
         hitRecord.t = t;
@@ -54,6 +54,6 @@ class Triangle : public Hittable {
         return true;
     }
     __host__ __device__ inline Triangle(Vector3 _vertices[3], Material *material) : vertices{_vertices[0], _vertices[1], _vertices[2]}, material(material) {
-        normal = Vector3::Cross(_vertices[1] - _vertices[0], _vertices[2] - _vertices[0]);
+        normal = Vector3::UnitVector(Vector3::Cross(_vertices[1] - _vertices[0], _vertices[2] - _vertices[0]));
     }
 };
