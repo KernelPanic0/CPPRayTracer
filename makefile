@@ -1,5 +1,5 @@
 CXX := g++
-GPU_CC := hipcc
+GPU_CC := $(shell command -v hipcc 2>/dev/null || echo /opt/rocm/bin/hipcc)
 BACKEND ?= amd
 DEBUG ?= 1
 
@@ -8,14 +8,16 @@ CUDA_SRC := ./src/Engine/Raytracing/Renderer.cu
 ifeq ($(BACKEND),amd)
     export HIP_PLATFORM := amd
     GPU_ARCH := --offload-arch=gfx1031
+    GPU_OPT := -Ofast
     CUDA_LIBS := -lamdhip64 -lhiprand
     BACKEND_INC := -I/opt/rocm/include
     BACKEND_DEFINE := -D__HIP_PLATFORM_AMD__
 else
     export HIP_PLATFORM := nvidia
-    GPU_ARCH := # e.g. -gencode arch=compute_XX,code=sm_XX for your GPU
+    GPU_ARCH := -gencode arch=compute_86,code=sm_86 # e.g. sm_86 = RTX 30xx
+    GPU_OPT := -O3 # nvcc has no -Ofast
     CUDA_LIBS := -lcudart -lcuda
-    BACKEND_INC := -I/opt/cuda/include -I/opt/rocm/include
+    BACKEND_INC := -I/usr/local/cuda/include -I/opt/rocm/include
     BACKEND_DEFINE := -D__HIP_PLATFORM_NVIDIA__
 endif
 
@@ -24,7 +26,7 @@ ifeq ($(DEBUG),1)
     GPU_CFLAGS := -std=c++20 -g -O0 $(BACKEND_INC) -I./includes -I./src/ $(GPU_ARCH) $(BACKEND_DEFINE)
 else
     CXXFLAGS := -std=c++20 -Ofast $(BACKEND_INC) -I./includes -I./includes/imgui -I./src/ -MMD -MP $(BACKEND_DEFINE)
-    GPU_CFLAGS := -std=c++20 -Ofast $(BACKEND_INC) -I./includes -I./src/ $(GPU_ARCH) $(BACKEND_DEFINE)
+    GPU_CFLAGS := -std=c++20 $(GPU_OPT) $(BACKEND_INC) -I./includes -I./src/ $(GPU_ARCH) $(BACKEND_DEFINE)
 endif
 
 LDFLAGS := -lglfw -lGL -ldl -lX11 -lpthread -lXrandr -lXi $(CUDA_LIBS)
