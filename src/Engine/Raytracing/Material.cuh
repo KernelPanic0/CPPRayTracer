@@ -36,6 +36,39 @@ public:
   }
 };
 
+class Sheen : public Material {
+private:
+  Triplet albedo;
+  double tintAmount = 0.5;
+
+public:
+  __device__ inline Sheen() : albedo(0, 0, 0) {}
+
+  __device__ inline Sheen(Triplet albedo) : albedo(albedo) {}
+
+  __device__ inline bool Scatter(Ray rayIn, HitRecord hitRecord, Triplet &attenuation, Ray &scattered, hiprandState *dCurandState) override {
+    Vector3 scatterDirection = Vector3::UnitVector(hitRecord.normal + Vector3::RandomUnitVector(dCurandState));
+    if (scatterDirection.NearZero())
+        scatterDirection = hitRecord.normal;
+
+    // Based on Rec 709 Luma coefficients https://en.wikipedia.org/wiki/Rec._709
+    double luminance = Vector3::Dot(Triplet(0.2126, 0.7152, 0.0722), albedo); // TODO: this actually needs to be a triplet and needs its own "dot" implementation
+
+    Triplet realTint = luminance > 0.0 ? albedo * (1.0 / luminance) : Triplet(1, 1, 1);
+    Triplet sheen = Triplet((1.0 - tintAmount)) + Triplet(tintAmount) * realTint;
+
+    Vector3 halfVector = Vector3::UnitVector(scatterDirection - rayIn.direction);
+
+    double cosThetaD = std::abs(Vector3::Dot(halfVector, scatterDirection));
+    double cosThetaO = std::abs(Vector3::Dot(hitRecord.normal, scatterDirection));
+    double radiance = pow(1.0 - cosThetaD, 5.0) * cosThetaO;
+
+    attenuation = M_PI * sheen * radiance;
+    scattered = Ray(hitRecord.point, scatterDirection);
+    return true;
+  }
+};
+
 class Metal : public Lambertian {
 private:
   Triplet albedo;

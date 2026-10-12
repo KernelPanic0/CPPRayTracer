@@ -3,6 +3,7 @@
 #include "Material.cuh"
 
 enum class MaterialType { Lambertian,
+                          Sheen,
                           Metal,
                           DiffuseLight };
 
@@ -16,6 +17,8 @@ struct RawMaterialData {
         switch (type) {
         case MaterialType::Lambertian:
             return new Lambertian(albedo);
+        case MaterialType::Sheen:
+            return new Sheen(albedo);
         case MaterialType::Metal:
             return new Metal(albedo, fuzz);
         case MaterialType::DiffuseLight:

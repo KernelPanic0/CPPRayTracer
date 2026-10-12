@@ -23,10 +23,10 @@ endif
 
 ifeq ($(DEBUG),1)
     CXXFLAGS := -std=c++20 -g -O0 $(BACKEND_INC) -fno-omit-frame-pointer -I./includes -I./includes/imgui -I./src/ -MMD -MP $(BACKEND_DEFINE)
-    GPU_CFLAGS := -std=c++20 -g -O0 $(BACKEND_INC) -I./includes -I./src/ $(GPU_ARCH) $(BACKEND_DEFINE)
+    GPU_CFLAGS := -std=c++20 -g -O0 $(BACKEND_INC) -I./includes -I./src/ $(GPU_ARCH) -MMD -MP $(BACKEND_DEFINE)
 else
     CXXFLAGS := -std=c++20 -Ofast $(BACKEND_INC) -I./includes -I./includes/imgui -I./src/ -MMD -MP $(BACKEND_DEFINE)
-    GPU_CFLAGS := -std=c++20 $(GPU_OPT) $(BACKEND_INC) -I./includes -I./src/ $(GPU_ARCH) $(BACKEND_DEFINE)
+    GPU_CFLAGS := -std=c++20 $(GPU_OPT) $(BACKEND_INC) -I./includes -I./src/ $(GPU_ARCH) -MMD -MP $(BACKEND_DEFINE)
 endif
 
 LDFLAGS := -lglfw -lGL -ldl -lX11 -lpthread -lXrandr -lXi $(CUDA_LIBS)
@@ -88,7 +88,7 @@ clean:
 run: all
 	./$(TARGET)
 
-DEPS := $(OBJ:.o=.d)
+DEPS := $(OBJ:.o=.d) $(CUDA_OBJ:.o=.d)
 -include $(DEPS)
 
 .PHONY: all clean run

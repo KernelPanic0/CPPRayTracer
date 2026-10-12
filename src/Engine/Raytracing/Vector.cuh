@@ -15,6 +15,7 @@ struct Triplet {
 
     __host__ __device__ Triplet() = default;
     __host__ __device__ Triplet(double x, double y, double z) : x(x), y(y), z(z) {}
+    __host__ __device__ Triplet(double x) : x(x), y(x), z(x) {}
 
     __device__ static inline Triplet Random(hiprandState *dCurandState) {
         double x = hiprand_uniform(dCurandState);
