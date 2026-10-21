@@ -8,10 +8,11 @@ Engine::Engine() : pWindow(std::make_shared<Window>()), pGraphicsManager(std::ma
     spheres.push_back({Vector3(-50005.5, 0, 0), 50000.0, {MaterialType::Lambertian, Triplet(1, 0.21, 0.31)}});    // Left
     spheres.push_back({Vector3(50005.5, 0, 0), 50000.0, {MaterialType::Lambertian, Triplet(0.15, 0.52, 0.09)}});  // Right
 
-    spheres.push_back({Vector3(0, 4.5, -2.5), 2.0, {MaterialType::DiffuseLight, Triplet(1, 1, 1), 0.0, 10}}); // Soft overhead
-    spheres.push_back({Vector3(-4, -1, -6), 1.0, {MaterialType::Sheen, Triplet(0.1, 0.0, 0.1)}});
-    spheres.push_back({Vector3(0, -1, -6), 1.0, {MaterialType::Lambertian, Triplet(0.08, 0.08, 0.1)}});
-    spheres.push_back({Vector3(4, -1, -6), 1.0, {MaterialType::DiffuseLight, Triplet(0.08, 0.98, 0.1), 0.01}});
+    spheres.push_back({Vector3(0, 4.5, -3), 2.0, {MaterialType::DiffuseLight, Triplet(1, 1, 1), 0.0, 10}}); // Soft overhead
+
+    spheres.push_back({Vector3(-4, -1, -4), 1.0, {MaterialType::Metal, Triplet(0.1, 0.0, 0.1), 0.1}});
+    spheres.push_back({Vector3(0, -1, -4), 1.0, {MaterialType::Lambertian, Triplet(0.1, 0.1, 0.8)}});
+    spheres.push_back({Vector3(4, -1, -4), 1.0, {MaterialType::Sheen, Triplet(0.08, 0.98, 0.1)}});
 
     world.spheres = spheres.data();
     world.sphereCount = spheres.size();

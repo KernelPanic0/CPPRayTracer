@@ -2,6 +2,7 @@
 
 ## Screenshots
 <img src='./img/output.png' width='600'/>
+<img src='./img/output2.png' width='600'/>
 <img src='./img/ui.png' width='600'/>
 
 ## Current Features
