@@ -4,6 +4,7 @@
 
 enum class MaterialType { Lambertian,
                           Sheen,
+                          Glass,
                           Metal,
                           DiffuseLight };
 
@@ -19,6 +20,8 @@ struct RawMaterialData {
             return new Lambertian(albedo);
         case MaterialType::Sheen:
             return new Sheen(albedo);
+        case MaterialType::Glass:
+            return new Glass();
         case MaterialType::Metal:
             return new Metal(albedo, fuzz);
         case MaterialType::DiffuseLight:

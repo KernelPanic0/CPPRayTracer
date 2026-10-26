@@ -10,14 +10,14 @@ Engine::Engine() : pWindow(std::make_shared<Window>()), pGraphicsManager(std::ma
 
     spheres.push_back({Vector3(0, 4.5, -3), 2.0, {MaterialType::DiffuseLight, Triplet(1, 1, 1), 0.0, 10}}); // Soft overhead
 
-    spheres.push_back({Vector3(-4, -1, -4), 1.0, {MaterialType::Metal, Triplet(0.1, 0.0, 0.1), 0.1}});
-    spheres.push_back({Vector3(0, -1, -4), 1.0, {MaterialType::Lambertian, Triplet(0.1, 0.1, 0.8)}});
-    spheres.push_back({Vector3(4, -1, -4), 1.0, {MaterialType::Sheen, Triplet(0.08, 0.98, 0.1)}});
+    spheres.push_back({Vector3(-1, -1, -4), 0.5, {MaterialType::Metal, Triplet(0.1, 0.0, 0.1), 0.1}});
+    spheres.push_back({Vector3(0, -1, -4), 0.5, {MaterialType::Lambertian, Triplet(0.1, 0.1, 0.8)}});
+    spheres.push_back({Vector3(1, -1, -4), 0.5, {MaterialType::Sheen, Triplet(0.08, 0.98, 0.1)}});
 
     world.spheres = spheres.data();
     world.sphereCount = spheres.size();
 
-    triangles = objParser.ReadFile("models/utah_teapot2.obj");
+    triangles = objParser.ReadFile("models/diamond.obj");
     world.triangles = triangles.data();
     world.triangleCount = triangles.size();
 }

@@ -70,39 +70,39 @@ public:
   }
 };
 
-// class Sheen : public Material {
-// private:
-//   Triplet albedo;
-//   double tintAmount = 0.5;
-//   Triplet sheen;
+class Glass : public Material {
+private:
+  double indexOfRefraction = 2.417;
+  __device__ inline double Reflectance(double cosine, double refractionIndex) {
+    // shlick approximation
+    double r0 = (1.0 - refractionIndex) / (1.0 + refractionIndex);
+    r0 = r0*r0;
 
-// public:
-//   __device__ inline Sheen() : albedo(0, 0, 0) {}
+    double m = 1.0 - cosine;
+    return r0 + (1.0-r0) * (m * m) * (m * m) * m;
+  }
 
-//   __device__ inline Sheen(Triplet albedo) : albedo(albedo) {
-//     // Based on Rec 709 Luma coefficients https://en.wikipedia.org/wiki/Rec._709
-//     double luminance = Vector3::Dot(Triplet(0.2126, 0.7152, 0.0722), albedo); // TODO: this actually needs to be a triplet and needs its own "dot" implementation
+public:
+  __device__ inline Glass() {}
 
-//     Triplet realTint = luminance > 0.0 ? albedo * (1.0 / luminance) : Triplet(1, 1, 1);
-//     sheen = Triplet((1.0 - tintAmount)) + Triplet(tintAmount) * realTint;
-//   }
+  __device__ inline bool Scatter(Ray rayIn, HitRecord hitRecord, Triplet &attenuation, Ray &scattered, hiprandState *dCurandState) override {
+    attenuation = Triplet(1, 1, 1);
+    double refractionIndex = hitRecord.frontFace ? (1.0/indexOfRefraction) : indexOfRefraction;
+    double cosTheta = std::fmin(Vector3::Dot(-rayIn.direction, hitRecord.normal), 1.0);
+    double sinTheta = std::sqrt(1.0 - cosTheta*cosTheta);
 
-//   __device__ inline bool Scatter(Ray rayIn, HitRecord hitRecord, Triplet &attenuation, Ray &scattered, hiprandState *dCurandState) override {
-//     Vector3 scatterDirection = Vector3::UnitVector(hitRecord.normal + Vector3::RandomUnitVector(dCurandState));
-//     if (scatterDirection.NearZero())
-//         scatterDirection = hitRecord.normal;
+    Vector3 out;
+    bool canReflect = refractionIndex * sinTheta < 1.0;
+    if (!canReflect || Reflectance(cosTheta, refractionIndex) > hiprand_uniform(dCurandState)) {
+        out = Vector3::Reflect(Vector3::UnitVector(rayIn.direction), hitRecord.normal);
+    } else {
+        out = Vector3::Refract(Vector3::UnitVector(rayIn.direction), hitRecord.normal, refractionIndex);
+    }
 
-//     Vector3 halfVector = Vector3::UnitVector(scatterDirection - rayIn.direction);
-
-//     double cosThetaD = std::abs(Vector3::Dot(halfVector, scatterDirection));
-//     double m = 1.0 - cosThetaD;
-//     double sheenWeight = (m * m) * (m * m) * m;
-
-//     attenuation = M_PI * sheen * sheenWeight;
-//     scattered = Ray(hitRecord.point, scatterDirection);
-//     return true;
-//   }
-// };
+    scattered = Ray(hitRecord.point, out);
+    return true;
+  }
+};
 
 class Metal : public Lambertian {
 private:

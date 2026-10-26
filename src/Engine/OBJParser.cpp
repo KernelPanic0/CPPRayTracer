@@ -70,7 +70,7 @@ std::vector<RawTriangleData> OBJParser::ReadFile(const char *path) {
             // vz.x = vz_X;
             // vz.y = vz_Y - 2;
             // vz.z = vz_Z - 5;
-            triangles.push_back({{vx, vy, vz}, {MaterialType::Sheen, Triplet(0.1, 0.0, 0.1)}}); // this needs to be done better too
+            triangles.push_back({{vx, vy, vz}, {MaterialType::Glass}}); // this needs to be done better too
         }
 
         if (lineNumber % 3 == 2) {

@@ -126,6 +126,17 @@ struct Vector3 : Triplet {
         return v - 2 * Dot(v, n) * n;
     }
 
+    __host__ __device__ static inline Vector3 Refract(const Vector3 &v, const Vector3 &n, double refractionRatio) {
+        // Need to calculate refracted ray direction, but can only calculate snells law for 
+        // angles (on one plane)
+        double cosTheta = std::fmin(Vector3::Dot(-v, n), 1.0);
+        Vector3 normalScaled = n * cosTheta;
+        Vector3 perp = refractionRatio * (v + normalScaled);
+        Vector3 par = -sqrt(1 - perp.LengthSquared()) * n;
+
+        return perp + par;
+    }
+
     __host__ __device__ static inline double Dot(const Vector3 &vector1, const Vector3 &vector2) {
         return vector1.x * vector2.x + vector1.y * vector2.y + vector1.z * vector2.z;
     }
