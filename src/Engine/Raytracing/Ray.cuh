@@ -11,5 +11,5 @@ struct Ray {
   Vector3 direction;
 
   __device__ Ray(Vector3 _origin, Vector3 _direction) : origin(_origin), direction(_direction) {};
-  __device__ inline Vector3 At(double t) const { return origin + t * direction; };
+  __device__ inline Vector3 At(float t) const { return origin + t * direction; };
 };

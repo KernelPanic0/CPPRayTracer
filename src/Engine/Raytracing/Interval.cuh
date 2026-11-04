@@ -7,19 +7,19 @@
 #endif
 
 struct Interval {
-  double min, max;
+  float min, max;
 
-  __device__ inline Interval(double min, double max) : min(min), max(max) {}
+  __device__ inline Interval(float min, float max) : min(min), max(max) {}
 
-  __device__ inline bool Contains(double x) const {
+  __device__ inline bool Contains(float x) const {
     return x >= min && x <= max;
   }
 
-  __device__ inline bool Surrounds(double x) const {
+  __device__ inline bool Surrounds(float x) const {
     return x > min && x < max;
   }
 
-  __device__ inline double Clamp(double x) const {
+  __device__ inline float Clamp(float x) const {
     if (x < min)
       return min;
     if (x > max)

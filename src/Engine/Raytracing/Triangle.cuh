@@ -13,7 +13,7 @@ class Triangle : public Hittable {
     Material *material;
 
   public:
-    __device__ inline bool Hit(Ray ray, Interval rayT, HitRecord &hitRecord) override {
+    __device__ inline bool Hit(const Ray &ray, const Interval &rayT, HitRecord &hitRecord) override {
         if (Vector3::Dot(ray.direction, normal) == 0)
             return false;
 
@@ -22,25 +22,25 @@ class Triangle : public Hittable {
 
         // calculate determinate via scalar triple product
         Vector3 edge2DirCross = Vector3::Cross(ray.direction, edge2);
-        double det = Vector3::Dot(edge1, edge2DirCross);
+        float det = Vector3::Dot(edge1, edge2DirCross);
 
         if (!rayT.Surrounds(abs(det)))
             return false;
 
-        double invDet = 1 / det;
+        float invDet = 1 / det;
         Vector3 tVec = ray.origin - vertices[0];
 
-        double u = Vector3::Dot(tVec, edge2DirCross) * invDet;
+        float u = Vector3::Dot(tVec, edge2DirCross) * invDet;
         if (u < 0 || u > 1)
             return false;
 
         Vector3 q = Vector3::Cross(tVec, edge1);
-        double v = Vector3::Dot(ray.direction, q) * invDet;
+        float v = Vector3::Dot(ray.direction, q) * invDet;
 
         if (v < 0 || u + v > 1)
             return false;
 
-        double t = Vector3::Dot(edge2, q) * invDet;
+        float t = Vector3::Dot(edge2, q) * invDet;
         if (!rayT.Surrounds(t))
             return false;
 

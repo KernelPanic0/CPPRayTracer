@@ -11,28 +11,28 @@
 
 // Generic Triplet type for storing things like colors to differentiate from vectors
 struct Triplet {
-    double x{0}, y{0}, z{0};
+    float x{0}, y{0}, z{0};
 
     __host__ __device__ Triplet() = default;
-    __host__ __device__ Triplet(double x, double y, double z) : x(x), y(y), z(z) {}
-    __host__ __device__ Triplet(double x) : x(x), y(x), z(x) {}
+    __host__ __device__ Triplet(float x, float y, float z) : x(x), y(y), z(z) {}
+    __host__ __device__ Triplet(float x) : x(x), y(x), z(x) {}
 
     __device__ static inline Triplet Random(hiprandState *dCurandState) {
-        double x = hiprand_uniform(dCurandState);
-        double y = hiprand_uniform(dCurandState);
-        double z = hiprand_uniform(dCurandState);
+        float x = hiprand_uniform(dCurandState);
+        float y = hiprand_uniform(dCurandState);
+        float z = hiprand_uniform(dCurandState);
         return Triplet(x, y, z);
     }
 
-    __device__ static inline Triplet Random(double min, double max, hiprandState *dCurandState) {
-        double x = hiprand_uniform(dCurandState) * (max - min) + min;
-        double y = hiprand_uniform(dCurandState) * (max - min) + min;
-        double z = hiprand_uniform(dCurandState) * (max - min) + min;
+    __device__ static inline Triplet Random(float min, float max, hiprandState *dCurandState) {
+        float x = hiprand_uniform(dCurandState) * (max - min) + min;
+        float y = hiprand_uniform(dCurandState) * (max - min) + min;
+        float z = hiprand_uniform(dCurandState) * (max - min) + min;
         return Triplet(x, y, z);
     }
 
     __host__ __device__ inline bool NearZero() const {
-        constexpr double s = 1e-8;
+        constexpr float s = 1e-8;
         return (fabs(x) < s) && (fabs(y) < s) && (fabs(z) < s);
     }
 
@@ -71,16 +71,16 @@ struct Triplet {
         return *this;
     }
 
-    __host__ __device__ inline Triplet operator*(double t) const {
+    __host__ __device__ inline Triplet operator*(float t) const {
         return Triplet(x * t, y * t, z * t);
     }
 
-    __host__ __device__ friend inline Triplet operator*(double t, const Triplet &v) {
+    __host__ __device__ friend inline Triplet operator*(float t, const Triplet &v) {
         return Triplet(v.x * t, v.y * t, v.z * t);
     }
 
     // /
-    __host__ __device__ inline Triplet operator/(double t) const {
+    __host__ __device__ inline Triplet operator/(float t) const {
         return Triplet(x / t, y / t, z / t);
     }
 };
@@ -88,15 +88,15 @@ struct Triplet {
 struct Vector3 : Triplet {
     __host__ __device__ inline Vector3() : Triplet(0, 0, 0) {}
 
-    __host__ __device__ inline Vector3(double x, double y, double z) : Triplet(x, y, z) {}
+    __host__ __device__ inline Vector3(float x, float y, float z) : Triplet(x, y, z) {}
 
     __host__ __device__ inline Vector3(const Triplet &t) : Triplet(t.x, t.y, t.z) {}
 
-    __host__ __device__ inline double Length() const {
+    __host__ __device__ inline float Length() const {
         return sqrt(LengthSquared());
     }
 
-    __host__ __device__ inline double LengthSquared() const {
+    __host__ __device__ inline float LengthSquared() const {
         return x * x + y * y + z * z;
     }
 
@@ -126,18 +126,18 @@ struct Vector3 : Triplet {
         return v - 2 * Dot(v, n) * n;
     }
 
-    __host__ __device__ static inline Vector3 Refract(const Vector3 &v, const Vector3 &n, double refractionRatio) {
+    __host__ __device__ static inline Vector3 Refract(const Vector3 &v, const Vector3 &n, float refractionRatio) {
         // Need to calculate refracted ray direction, but can only calculate snells law for 
         // angles (on one plane)
-        double cosTheta = std::fmin(Vector3::Dot(-v, n), 1.0);
+        float cosTheta = fminf(Vector3::Dot(-v, n), 1.0f);
         Vector3 normalScaled = n * cosTheta;
         Vector3 perp = refractionRatio * (v + normalScaled);
-        Vector3 par = -sqrt(1 - perp.LengthSquared()) * n;
+        Vector3 par = -sqrt(1.0f - perp.LengthSquared()) * n;
 
         return perp + par;
     }
 
-    __host__ __device__ static inline double Dot(const Vector3 &vector1, const Vector3 &vector2) {
+    __host__ __device__ static inline float Dot(const Vector3 &vector1, const Vector3 &vector2) {
         return vector1.x * vector2.x + vector1.y * vector2.y + vector1.z * vector2.z;
     }
 
@@ -171,16 +171,16 @@ struct Vector3 : Triplet {
         return Vector3(x * otherVector.x, y * otherVector.y, z * otherVector.z);
     }
 
-    __host__ __device__ inline Vector3 operator*(double t) const {
+    __host__ __device__ inline Vector3 operator*(float t) const {
         return Vector3(x * t, y * t, z * t);
     }
 
-    __host__ __device__ friend inline Vector3 operator*(double t, const Vector3 &v) {
+    __host__ __device__ friend inline Vector3 operator*(float t, const Vector3 &v) {
         return Vector3(v.x * t, v.y * t, v.z * t);
     }
 
     // /
-    __host__ __device__ inline Vector3 operator/(double t) const {
+    __host__ __device__ inline Vector3 operator/(float t) const {
         return Vector3(x / t, y / t, z / t);
     }
 };

@@ -22,11 +22,11 @@ struct CameraParams {
     Vector3 pixelDeltaHorizontal;
     Vector3 pixelDeltaVertical;
 
-    double aspectNum = 16.0f;
-    double aspectDenom = 9.0f;
-    double aspectRatio = aspectNum / aspectDenom;
+    float aspectNum = 16.0f;
+    float aspectDenom = 9.0f;
+    float aspectRatio = aspectNum / aspectDenom;
     int imageWidth = 400;
-    double imageHeight;
+    float imageHeight;
     Triplet backgroundColor;
     int samplesPerPixel = 15;
     int maxDepth = 5;
@@ -73,5 +73,5 @@ class CudaRenderer {
 __device__ Triplet RayColor(Hittable **world, Ray &ray, int depth, hiprandState *dCurandState, RenderStatistics *renderStats);
 __device__ Ray GetRay(int i, int j, CameraParams camParams, hiprandState *dCurandState);
 __device__ Vector3 PixelSampleSquare(CameraParams camParams, hiprandState *dCurandState);
-__device__ double ComputeColor(double color, int samplesPerPixel);
+__device__ float ComputeColor(float color, int samplesPerPixel);
 __host__ void InitialiseProperties(CameraParams &camParams);

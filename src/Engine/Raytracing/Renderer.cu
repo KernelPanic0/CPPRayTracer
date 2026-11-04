@@ -42,11 +42,11 @@ __global__ void RenderSampleKernel(uint8_t *fb, Triplet *accumBuffer, Hittable *
         accumBuffer[pixelIndex] += pixelColor;
     }
 
-    Triplet averagedColor = accumBuffer[pixelIndex] / (double)sample;
+    Triplet averagedColor = accumBuffer[pixelIndex] / (float)sample;
 
-    double r = ComputeColor(averagedColor.x, 1);
-    double g = ComputeColor(averagedColor.y, 1);
-    double b = ComputeColor(averagedColor.z, 1);
+    float r = ComputeColor(averagedColor.x, 1);
+    float g = ComputeColor(averagedColor.y, 1);
+    float b = ComputeColor(averagedColor.z, 1);
 
     fb[pixelIndex * 3 + 0] = (uint8_t)r;
     fb[pixelIndex * 3 + 1] = (uint8_t)g;
@@ -70,9 +70,9 @@ __global__ void RenderBucketKernel(uint8_t *fb, Hittable **world, int maxX, int 
         pixelColor += RayColor(world, ray, camParams.maxDepth, &localRandState, renderStats);
     }
 
-    double r = ComputeColor(pixelColor.x, camParams.samplesPerPixel);
-    double g = ComputeColor(pixelColor.y, camParams.samplesPerPixel);
-    double b = ComputeColor(pixelColor.z, camParams.samplesPerPixel);
+    float r = ComputeColor(pixelColor.x, camParams.samplesPerPixel);
+    float g = ComputeColor(pixelColor.y, camParams.samplesPerPixel);
+    float b = ComputeColor(pixelColor.z, camParams.samplesPerPixel);
 
     fb[pixelIndex * 3 + 0] = (uint8_t)r;
     fb[pixelIndex * 3 + 1] = (uint8_t)g;
@@ -90,7 +90,7 @@ __device__ Ray GetRay(int i, int j, CameraParams camParams, hiprandState *dCuran
 
 __device__ Triplet RayColor(Hittable **world, Ray &ray, int depth, hiprandState *dCurandState, RenderStatistics* renderStats) {
     HitRecord hitRecord;
-    Interval rayTInterval(0.001, FLT_MAX);
+    Interval rayTInterval(0.1f, FLT_MAX);
 
     Triplet accumulation(0, 0, 0);
     Triplet throughput(1, 1, 1);
@@ -128,14 +128,14 @@ __device__ Triplet RayColor(Hittable **world, Ray &ray, int depth, hiprandState 
 }
 
 __device__ Vector3 PixelSampleSquare(CameraParams camParams, hiprandState *dCurandState) {
-    double pX = -0.5 + hiprand_uniform(dCurandState);
-    double pY = -0.5 + hiprand_uniform(dCurandState);
+    float pX = -0.5 + hiprand_uniform(dCurandState);
+    float pY = -0.5 + hiprand_uniform(dCurandState);
 
     return (pX * camParams.pixelDeltaHorizontal) + (pY * camParams.pixelDeltaVertical);
 }
 
-__device__ double ComputeColor(double color, int samplesPerPixel) {
-    double scale = 1.0 / samplesPerPixel;
+__device__ float ComputeColor(float color, int samplesPerPixel) {
+    float scale = 1.0 / samplesPerPixel;
     color *= scale;
     color = std::sqrt(color); // linear to gamma
     Interval intensity(0.000, 0.999);
@@ -148,9 +148,9 @@ __host__ void InitialiseProperties(CameraParams &camParams) {
     camParams.maxDepth = 15;
     camParams.center = Vector3(0, 0, 0);
 
-    double focalLength = 1.0;
-    double viewportHeight = 2.0;
-    double viewportWidth = viewportHeight * ((double)camParams.imageWidth / (double)camParams.imageHeight);
+    float focalLength = 1.0;
+    float viewportHeight = 2.0;
+    float viewportWidth = viewportHeight * ((float)camParams.imageWidth / (float)camParams.imageHeight);
 
     Vector3 cameraCenter(0, 0, 0);
     Vector3 viewportHorizontal(viewportWidth, 0, 0);

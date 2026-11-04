@@ -11,8 +11,8 @@ enum class MaterialType { Lambertian,
 struct RawMaterialData {
     MaterialType type;
     Triplet albedo;
-    double fuzz = 0.0;      // Metal only
-    double intensity = 1.0; // DiffuseLight only
+    float fuzz = 0.0;      // Metal only
+    float intensity = 1.0; // DiffuseLight only
 
     __device__ Material *Build() {
         switch (type) {
@@ -39,7 +39,7 @@ struct RawTriangleData {
 
 struct RawSphereData {
     Vector3 center;
-    double radius;
+    float radius;
     RawMaterialData material;
 };
 

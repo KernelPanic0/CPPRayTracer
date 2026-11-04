@@ -8,7 +8,7 @@
 #include <memory>
 
 struct Hittable {
-  __device__ virtual inline bool Hit(Ray ray, Interval rayT, HitRecord &hitRecord) {
+  __device__ virtual inline bool Hit(const Ray &ray, const Interval &rayT, HitRecord &hitRecord) {
     return false;
   }
 };
@@ -25,10 +25,10 @@ struct HittableList : Hittable {
     size++;
   }
 
-  __device__ inline bool Hit(Ray ray, Interval rayT, HitRecord &hitRecord) override {
+  __device__ inline bool Hit(const Ray &ray, const Interval &rayT, HitRecord &hitRecord) override {
     HitRecord tempRecord;
     bool hitAnything = false;
-    double closestSoFar = rayT.max;
+    float closestSoFar = rayT.max;
 
     for (int i = 0; i < size; i++) {
       Hittable *obj = objects[i];
