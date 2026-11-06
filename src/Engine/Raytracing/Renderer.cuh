@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "Vector.cuh"
 #include "Hittable.cuh"
+#include "HittableList.cuh"
 #include "Sphere.cuh"
 #include <float.h>
 #include "RawSphereData.hpp"
@@ -65,9 +66,13 @@ class CudaRenderer {
     Triplet *dAccumulationBuffer = nullptr;
     uint8_t *dFramebuffer = nullptr;
     hiprandState *dRandState = nullptr;
-    Hittable **dObjectList = nullptr;
+    // these will need to be grouped into struct
+    Sphere **dSphereList = nullptr;
+    Triangle **dTriangleList = nullptr;
+    size_t sphereCount = 0;
+    size_t triangleCount = 0;
+
     Hittable **dWorld = nullptr;
-    size_t worldSize = 0;
 };
 
 __device__ Triplet RayColor(Hittable **world, Ray &ray, int depth, hiprandState *dCurandState, RenderStatistics *renderStats);

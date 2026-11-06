@@ -1,7 +1,7 @@
 CXX := g++
 GPU_CC := $(shell command -v hipcc 2>/dev/null || echo /opt/rocm/bin/hipcc)
 BACKEND ?= amd
-DEBUG ?= 1
+DEBUG ?= 0
 
 CUDA_SRC := ./src/Engine/Raytracing/Renderer.cu
 

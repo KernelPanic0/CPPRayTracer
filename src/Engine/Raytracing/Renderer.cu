@@ -95,7 +95,6 @@ __device__ Triplet RayColor(Hittable **world, Ray &ray, int depth, hiprandState 
     Triplet accumulation(0, 0, 0);
     Triplet throughput(1, 1, 1);
 
-    // for loop may also be easier for compiler to unroll and optimize than a while loop
     while (depth > 1) {
         renderStats->raysCast++;
         if (!(*world)->Hit(ray, rayTInterval, hitRecord)) {
@@ -163,23 +162,27 @@ __host__ void InitialiseProperties(CameraParams &camParams) {
     camParams.pixel00Loc = viewportTopLeft + 0.5 * (camParams.pixelDeltaHorizontal + camParams.pixelDeltaVertical);
 }
 
-__global__ void CreateWorldKernel(Hittable **dHittableList, Hittable **dWorld, RawSphereData *spheres, RawTriangleData *triangles, size_t sphereCount, size_t triangleCount, size_t worldSize) {
+__global__ void CreateWorldKernel(Sphere** dSphereList, Triangle** dTriangleList, RawSphereData *spheres, RawTriangleData *triangles, size_t sphereCount, size_t triangleCount, Hittable** dWorld) {
     if (threadIdx.x == 0 && blockIdx.x == 0) {
-    for (int i = 0; i < sphereCount; i++) {
-        *(dHittableList + i) = new Sphere(spheres[i].center, spheres[i].radius, spheres[i].material.Build());
-    }
-    for (int i = 0; i < triangleCount; i++) {
-        *(dHittableList + sphereCount + i) = new Triangle(triangles[i].vertices, triangles[i].material.Build());
-    }
+        for (int i = 0; i < sphereCount; i++) {
+            *(dSphereList + i) = new Sphere(spheres[i].center, spheres[i].radius, spheres[i].material.Build());
+        }
+        for (int i = 0; i < triangleCount; i++) {
+            *(dTriangleList + i) = new Triangle(triangles[i].vertices, triangles[i].material.Build());
+        }
 
-    *dWorld = new HittableList(dHittableList, worldSize);
+        *dWorld = new HittableList(dSphereList, dTriangleList, sphereCount, triangleCount);
   }
 }
 
-__global__ void FreeWorldKernel(Hittable **dHittableList, Hittable **dWorld, size_t size) {
+__global__ void FreeWorldKernel(Sphere **dSphereList, Triangle **dTriangleList, size_t sphereCount, size_t triangleCount, Hittable** dWorld) {
     if (threadIdx.x == 0 && blockIdx.x == 0) {
-        for (size_t i = 0; i < size; i++) {
-            delete dHittableList[i];
+        for (size_t i = 0; i < sphereCount; i++) {
+            delete dSphereList[i];
+        }
+
+        for (size_t i = 0; i < triangleCount; i++) {
+            delete dTriangleList[i];
         }
     }
 
@@ -192,7 +195,6 @@ CudaRenderer::CudaRenderer(int width, int height) {
     dFramebuffer = nullptr;
     dRandState = nullptr;
     dWorld = nullptr;
-    dObjectList = nullptr;
     hOutputBuffer = nullptr;
 
     checkHipErrors(hipMalloc(&dStopRequested, sizeof(bool)));
@@ -317,20 +319,25 @@ void CudaRenderer::RequestStop() {
 
 void CudaRenderer::UpdateWorld(const WorldData &hWorld) {
     FreeWorld();
-    worldSize = hWorld.sphereCount + hWorld.triangleCount;
+    sphereCount = hWorld.sphereCount;
+    triangleCount = hWorld.triangleCount;
+    size_t worldSize = sphereCount + triangleCount;
     if (worldSize == 0) return;
 
     RawSphereData* dWorldSphereData = nullptr;
     RawTriangleData* dWorldTriangleData = nullptr;
-    checkHipErrors(hipMalloc((void**)&dWorldSphereData, hWorld.sphereCount * sizeof(RawSphereData)));
-    checkHipErrors(hipMemcpy(dWorldSphereData, hWorld.spheres, hWorld.sphereCount * sizeof(RawSphereData), hipMemcpyHostToDevice));
-    checkHipErrors(hipMalloc((void**)&dWorldTriangleData, hWorld.triangleCount * sizeof(RawTriangleData)));
-    checkHipErrors(hipMemcpy(dWorldTriangleData, hWorld.triangles, hWorld.triangleCount * sizeof(RawTriangleData), hipMemcpyHostToDevice));
 
-    checkHipErrors(hipMalloc((void**)&dObjectList, worldSize * sizeof(Hittable*)));
+    checkHipErrors(hipMalloc((void**)&dWorldSphereData, sphereCount * sizeof(RawSphereData)));
+    checkHipErrors(hipMemcpy(dWorldSphereData, hWorld.spheres, sphereCount * sizeof(RawSphereData), hipMemcpyHostToDevice));
+    checkHipErrors(hipMalloc((void**)&dWorldTriangleData, triangleCount * sizeof(RawTriangleData)));
+    checkHipErrors(hipMemcpy(dWorldTriangleData, hWorld.triangles, triangleCount * sizeof(RawTriangleData), hipMemcpyHostToDevice));
+
+    checkHipErrors(hipMalloc((void**)&dSphereList, sphereCount * sizeof(Sphere*)));
+    checkHipErrors(hipMalloc((void**)&dTriangleList, triangleCount * sizeof(Triangle*)));
     checkHipErrors(hipMalloc((void**)&dWorld, sizeof(Hittable*)));
 
-    CreateWorldKernel<<<1, 1>>>(dObjectList, dWorld, dWorldSphereData, dWorldTriangleData, hWorld.sphereCount, hWorld.triangleCount, worldSize);
+
+    CreateWorldKernel<<<1, 1>>>(dSphereList, dTriangleList, dWorldSphereData, dWorldTriangleData, sphereCount, triangleCount, dWorld);
     hipDeviceSynchronize();
 
     hipFree(dWorldSphereData);
@@ -338,14 +345,18 @@ void CudaRenderer::UpdateWorld(const WorldData &hWorld) {
 }
 
 void CudaRenderer::FreeWorld() {
+    size_t worldSize = sphereCount + triangleCount;
     if (dWorld && worldSize > 0) {
-        FreeWorldKernel<<<1, 1>>>(dObjectList, dWorld, worldSize);
+        FreeWorldKernel<<<1, 1>>>(dSphereList, dTriangleList, sphereCount, triangleCount, dWorld);
         hipDeviceSynchronize();
-        hipFree(dObjectList);
+        hipFree(dSphereList);
+        hipFree(dTriangleList);
         hipFree(dWorld);
-        dObjectList = nullptr;
+        dSphereList = nullptr;
+        dTriangleList = nullptr;
         dWorld = nullptr;
-        worldSize = 0;
+        sphereCount = 0;
+        triangleCount = 0;
     }
 }
 
