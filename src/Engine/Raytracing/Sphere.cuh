@@ -5,12 +5,13 @@
 #include "Material.cuh"
 #include "Ray.cuh"
 #include "Vector.cuh"
+#include "RawObjectData.hpp"
 
 class Sphere : public Hittable {
 private:
   Vector3 centre;
   float radius;
-  Material *material;
+  Material material;
 
 public:
   __device__ inline bool Hit(const Ray &ray, const Interval &rayT, HitRecord &hitRecord) override {
@@ -39,9 +40,9 @@ public:
     hitRecord.point = ray.At(hitRecord.t);
     Vector3 outwardNormal = (Vector3)(hitRecord.point - centre) / radius;
     hitRecord.SetFaceNormal(ray, outwardNormal);
-    hitRecord.material = material;
+    hitRecord.material = &material;
     return true;
   }
 
-  __host__ __device__ inline Sphere(Vector3 centre, float radius, Material *material) : centre(centre), radius(radius), material(material) {}
+  __host__ __device__ inline Sphere(Vector3 centre, float radius, RawMaterialData &rawMaterial) : centre(centre), radius(radius), material(rawMaterial.type, rawMaterial.albedo, rawMaterial.fuzz, rawMaterial.intensity) {}
 };

@@ -1,4 +1,5 @@
 #pragma once
+#include "MaterialType.hpp"
 #include "HitRecord.cuh"
 #include "Ray.cuh"
 
@@ -7,24 +8,16 @@
 #define __device__
 #endif
 
-class Material {
-public:
-  __device__ virtual bool Scatter(Ray rayIn, HitRecord hitRecord, Triplet &attenuation, Ray &scattered, hiprandState *dCurandState) = 0;
-  __device__ virtual inline Triplet Emitted(float u, float v, Vector3 point) {
-    return Triplet(0, 0, 0);
-  }
-};
-
-class Lambertian : public Material {
-private:
+struct Lambertian {
   Triplet albedo;
 
-public:
-  __device__ inline Lambertian() : albedo(0, 0, 0) {}
+  __host__ __device__ static Lambertian Make(Triplet albedo) {
+    Lambertian m;
+    m.albedo = albedo;
+    return m;
+  }
 
-  __device__ inline Lambertian(Triplet albedo) : albedo(albedo) {}
-
-  __device__ inline bool Scatter(Ray rayIn, HitRecord hitRecord, Triplet &attenuation, Ray &scattered, hiprandState *dCurandState) override {
+  __device__ bool Scatter(const Ray &rayIn, const HitRecord &hitRecord, Triplet &attenuation, Ray &scattered, hiprandState *dCurandState) const {
     Vector3 scatterDirection = hitRecord.normal + Vector3::RandomUnitVector(dCurandState);
 
     if (scatterDirection.NearZero())
@@ -34,108 +27,171 @@ public:
     attenuation = albedo;
     return true;
   }
+
+  __device__ Triplet Emitted() const { return Triplet(0, 0, 0); }
 };
 
-class Sheen : public Material {
-private:
-  Triplet albedo;
-  float tintAmount = 0.5;
-  Triplet sheen;
+struct Sheen {
+  Triplet sheen; // precomputed tint; the albedo itself is no longer needed
 
-public:
-  __device__ inline Sheen() : albedo(0, 0, 0) {}
+  static constexpr float kTintAmount = 0.5f;
 
-  __device__ inline Sheen(Triplet albedo) : albedo(albedo) {
-    // Based on Rec 709 Luma coefficients https://en.wikipedia.org/wiki/Rec._709
-    float luminance = Vector3::Dot(Triplet(0.2126, 0.7152, 0.0722), albedo); // TODO: this actually needs to be a triplet and needs its own "dot" implementation
-
+  __host__ __device__ static Sheen Make(Triplet albedo) {
+    // Rec. 709 luma coefficients https://en.wikipedia.org/wiki/Rec._709
+    float luminance = Vector3::Dot(Triplet(0.2126, 0.7152, 0.0722), albedo);
     Triplet realTint = luminance > 0.0 ? albedo * (1.0 / luminance) : Triplet(1, 1, 1);
-    sheen = Triplet((1.0 - tintAmount)) + Triplet(tintAmount) * realTint;
+
+    Sheen m;
+    m.sheen = Triplet(1.0f - kTintAmount) + Triplet(kTintAmount) * realTint;
+    return m;
   }
 
-  __device__ inline bool Scatter(Ray rayIn, HitRecord hitRecord, Triplet &attenuation, Ray &scattered, hiprandState *dCurandState) override {
+  __device__ bool Scatter(const Ray &rayIn, const HitRecord &hitRecord, Triplet &attenuation, Ray &scattered, hiprandState *dCurandState) const {
     Vector3 scatterDirection = Vector3::UnitVector(hitRecord.normal + Vector3::RandomUnitVector(dCurandState));
     if (scatterDirection.NearZero())
-        scatterDirection = hitRecord.normal;
+      scatterDirection = hitRecord.normal;
 
     Vector3 halfVector = Vector3::UnitVector(scatterDirection - rayIn.direction);
 
-    float cosThetaD = std::abs(Vector3::Dot(halfVector, scatterDirection));
-    float m = 1.0 - cosThetaD;
+    float cosThetaD = fabsf(Vector3::Dot(halfVector, scatterDirection));
+    float m = 1.0f - cosThetaD;
     float sheenWeight = (m * m) * (m * m) * m;
 
-    attenuation = M_PI * sheen * sheenWeight;
+    attenuation = static_cast<float>(M_PI) * sheen * sheenWeight;
     scattered = Ray(hitRecord.point, scatterDirection);
     return true;
   }
+
+  __device__ Triplet Emitted() const { return Triplet(0, 0, 0); }
 };
 
-class Glass : public Material {
-private:
-  float indexOfRefraction = 2.417f;
-  __device__ inline float Reflectance(float cosine, float refractionIndex) {
-    // shlick approximation
-    float r0 = (1.0f - refractionIndex) / (1.0f + refractionIndex);
-    r0 = r0*r0;
+struct Glass {
+  float indexOfRefraction;
 
-    float m = 1.0f - cosine;
-    return r0 + (1.0f-r0) * (m * m) * (m * m) * m;
+  __host__ __device__ static Glass Make(float indexOfRefraction = 2.417f) {
+    Glass m;
+    m.indexOfRefraction = indexOfRefraction;
+    return m;
   }
 
-public:
-  __device__ inline Glass() {}
+  __device__ static float Reflectance(float cosine, float refractionIndex) {
+    // Schlick approximation
+    float r0 = (1.0f - refractionIndex) / (1.0f + refractionIndex);
+    r0 = r0 * r0;
 
-  __device__ inline bool Scatter(Ray rayIn, HitRecord hitRecord, Triplet &attenuation, Ray &scattered, hiprandState *dCurandState) override {
+    float m = 1.0f - cosine;
+    return r0 + (1.0f - r0) * (m * m) * (m * m) * m;
+  }
+
+  __device__ bool Scatter(const Ray &rayIn, const HitRecord &hitRecord, Triplet &attenuation, Ray &scattered, hiprandState *dCurandState) const {
     attenuation = Triplet(1, 1, 1);
-    float refractionIndex = hitRecord.frontFace ? (1.0f/indexOfRefraction) : indexOfRefraction;
+    float refractionIndex = hitRecord.frontFace ? (1.0f / indexOfRefraction) : indexOfRefraction;
     float cosTheta = fminf(Vector3::Dot(-rayIn.direction, hitRecord.normal), 1.0f);
-    float sinTheta = std::sqrt(1.0f - cosTheta*cosTheta);
+    float sinTheta = sqrtf(1.0f - cosTheta * cosTheta);
 
     Vector3 out;
-    bool canReflect = refractionIndex * sinTheta < 1.0f;
+    bool canRefract = refractionIndex * sinTheta < 1.0f;
 
-    if (!canReflect || Reflectance(cosTheta, refractionIndex) > hiprand_uniform(dCurandState)) {
-        out = Vector3::Reflect(Vector3::UnitVector(rayIn.direction), hitRecord.normal);
+    if (!canRefract || Reflectance(cosTheta, refractionIndex) > hiprand_uniform(dCurandState)) {
+      out = Vector3::Reflect(Vector3::UnitVector(rayIn.direction), hitRecord.normal);
     } else {
-        out = Vector3::Refract(Vector3::UnitVector(rayIn.direction), hitRecord.normal, refractionIndex);
+      out = Vector3::Refract(Vector3::UnitVector(rayIn.direction), hitRecord.normal, refractionIndex);
     }
 
     scattered = Ray(hitRecord.point, out);
     return true;
   }
+
+  __device__ Triplet Emitted() const { return Triplet(0, 0, 0); }
 };
 
-class Metal : public Lambertian {
-private:
+struct Metal {
   Triplet albedo;
   float fuzz;
 
-public:
-  __device__ inline Metal(Triplet albedo, float fuzz) : albedo(albedo), fuzz(fuzz) {}
+  __host__ __device__ static Metal Make(Triplet albedo, float fuzz = 0.0f) {
+    Metal m;
+    m.albedo = albedo;
+    m.fuzz = fuzz;
+    return m;
+  }
 
-  __device__ inline Metal(Triplet albedo) : albedo(albedo), fuzz(0) {}
-
-  __device__ inline bool Scatter(Ray rayIn, HitRecord hitRecord, Triplet &attenuation, Ray &scattered, hiprandState *dCurandState) override {
+  __device__ bool Scatter(const Ray &rayIn, const HitRecord &hitRecord, Triplet &attenuation, Ray &scattered, hiprandState *dCurandState) const {
     Vector3 reflected = Vector3::Reflect(Vector3::UnitVector(rayIn.direction), hitRecord.normal);
     scattered = Ray(hitRecord.point, reflected + fuzz * Vector3::RandomUnitVector(dCurandState));
     attenuation = albedo;
     return Vector3::Dot(scattered.direction, hitRecord.normal) > 0;
   }
+
+  __device__ Triplet Emitted() const { return Triplet(0, 0, 0); }
 };
 
-class DiffuseLight : public Material {
-private:
+struct DiffuseLight {
   Triplet emit;
   float intensity;
 
-public:
-  __device__ inline DiffuseLight(Triplet emit, float intensity) : emit(emit), intensity(intensity) {}
+  __host__ __device__ static DiffuseLight Make(Triplet emit, float intensity) {
+    DiffuseLight m;
+    m.emit = emit;
+    m.intensity = intensity;
+    return m;
+  }
 
-  __device__ inline bool Scatter(Ray rayIn, HitRecord hitRecord, Triplet &attenuation, Ray &scattered, hiprandState *dCurandState) override {
+  __device__ bool Scatter(const Ray &, const HitRecord &, Triplet &, Ray &, hiprandState *) const {
     return false;
   }
 
-  __device__ inline Triplet Emitted(float u, float v, Vector3 point) override {
-    return emit * intensity;
-  }
+  __device__ Triplet Emitted() const { return emit * intensity; }
+};
+
+struct Material {
+    MaterialType type;
+    union {
+        Lambertian lambertian;
+        Metal metal;
+        Glass glass;
+        Sheen sheen;
+        DiffuseLight diffuseLight;
+    };
+
+    __device__ bool Scatter(Ray rayIn, HitRecord hitRecord, Triplet &attenuation, Ray &scattered, hiprandState *dCurandState) const {
+        switch (type) {
+            case MaterialType::DiffuseLight: return false;
+            case MaterialType::Lambertian: return lambertian.Scatter(rayIn, hitRecord, attenuation, scattered, dCurandState);
+            case MaterialType::Metal: return metal.Scatter(rayIn, hitRecord, attenuation, scattered, dCurandState);
+            case MaterialType::Glass: return glass.Scatter(rayIn, hitRecord, attenuation, scattered, dCurandState);
+            case MaterialType::Sheen: return sheen.Scatter(rayIn, hitRecord, attenuation, scattered, dCurandState);
+        }
+    }
+
+    __host__ __device__ Material(MaterialType type, Triplet albedo, float fuzz, float intensity) : type(type) {
+        switch (type) {
+        case MaterialType::Lambertian:
+            lambertian = Lambertian::Make(albedo);
+            break;
+
+        case MaterialType::Metal:
+            metal = Metal::Make(albedo, fuzz);
+            break;
+
+        case MaterialType::Glass:
+            glass = Glass::Make();
+            break;
+
+        case MaterialType::Sheen:
+            sheen = Sheen::Make(albedo);
+            break;
+
+        case MaterialType::DiffuseLight:
+            diffuseLight = DiffuseLight::Make(albedo, intensity);
+            break;
+        }
+    }
+
+    __device__ Triplet Emitted() const {
+        switch (type) {
+            case MaterialType::DiffuseLight: return diffuseLight.Emitted();
+        }
+        return Triplet(0, 0, 0);
+    }
 };

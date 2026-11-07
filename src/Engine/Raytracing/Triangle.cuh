@@ -10,7 +10,7 @@ class Triangle : public Hittable {
   private:
     Vector3 vertices[3];
     Vector3 normal;
-    Material *material;
+    Material material;
 
   public:
     __device__ inline bool Hit(const Ray &ray, const Interval &rayT, HitRecord &hitRecord) override {
@@ -49,11 +49,11 @@ class Triangle : public Hittable {
         // hitRecord.normal = normal;
         hitRecord.SetFaceNormal(ray, normal);
 
-        hitRecord.material = material;
+        hitRecord.material = &material;
 
         return true;
     }
-    __host__ __device__ inline Triangle(Vector3 _vertices[3], Material *material) : vertices{_vertices[0], _vertices[1], _vertices[2]}, material(material) {
+    __host__ __device__ inline Triangle(Vector3 _vertices[3], RawMaterialData &rawMaterial) : vertices{_vertices[0], _vertices[1], _vertices[2]}, material(rawMaterial.type, rawMaterial.albedo, rawMaterial.fuzz, rawMaterial.intensity) {
         normal = Vector3::UnitVector(Vector3::Cross(_vertices[1] - _vertices[0], _vertices[2] - _vertices[0]));
     }
 };

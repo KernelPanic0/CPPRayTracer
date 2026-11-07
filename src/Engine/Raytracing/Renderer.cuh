@@ -7,7 +7,7 @@
 #include "HittableList.cuh"
 #include "Sphere.cuh"
 #include <float.h>
-#include "RawSphereData.hpp"
+#include "RawObjectData.hpp"
 #include "Triangle.cuh"
 #include <thread>
 

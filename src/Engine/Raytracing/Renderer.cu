@@ -106,7 +106,7 @@ __device__ Triplet RayColor(Hittable **world, Ray &ray, int depth, hiprandState 
 
         Ray scattered(Vector3(0, 0, 0), Vector3(0, 0, 0));
         Triplet attenuation(0, 0, 0);
-        Triplet colorFromEmission = hitRecord.material->Emitted(0, 0, hitRecord.point);
+        Triplet colorFromEmission = hitRecord.material->Emitted();
 
         if (!hitRecord.material->Scatter(ray, hitRecord, attenuation, scattered, dCurandState)) {
             accumulation += throughput * colorFromEmission;
@@ -165,10 +165,10 @@ __host__ void InitialiseProperties(CameraParams &camParams) {
 __global__ void CreateWorldKernel(Sphere** dSphereList, Triangle** dTriangleList, RawSphereData *spheres, RawTriangleData *triangles, size_t sphereCount, size_t triangleCount, Hittable** dWorld) {
     if (threadIdx.x == 0 && blockIdx.x == 0) {
         for (int i = 0; i < sphereCount; i++) {
-            *(dSphereList + i) = new Sphere(spheres[i].center, spheres[i].radius, spheres[i].material.Build());
+            *(dSphereList + i) = new Sphere(spheres[i].center, spheres[i].radius, spheres[i].material);
         }
         for (int i = 0; i < triangleCount; i++) {
-            *(dTriangleList + i) = new Triangle(triangles[i].vertices, triangles[i].material.Build());
+            *(dTriangleList + i) = new Triangle(triangles[i].vertices, triangles[i].material);
         }
 
         *dWorld = new HittableList(dSphereList, dTriangleList, sphereCount, triangleCount);

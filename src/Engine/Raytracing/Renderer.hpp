@@ -4,7 +4,7 @@
 // (HIP_PLATFORM=amd or HIP_PLATFORM=nvidia picks the target at build time).
 #include "Hittable.cuh"
 #include "Material.cuh"
-#include "RawSphereData.hpp"
+#include "RawObjectData.hpp"
 #include "Renderer.cuh"
 #include "Sphere.cuh"
 #include "Vector.cuh"

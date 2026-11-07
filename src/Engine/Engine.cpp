@@ -17,9 +17,9 @@ Engine::Engine() : pWindow(std::make_shared<Window>()), pGraphicsManager(std::ma
     world.spheres = spheres.data();
     world.sphereCount = spheres.size();
 
-    // triangles = objParser.ReadFile("models/utah_teapot2.obj");
-    // world.triangles = triangles.data();
-    // world.triangleCount = triangles.size();
+    triangles = objParser.ReadFile("models/diamond.obj");
+    world.triangles = triangles.data();
+    world.triangleCount = triangles.size();
 }
 
 void Engine::RenderFrame() {
