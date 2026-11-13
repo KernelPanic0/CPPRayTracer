@@ -1,6 +1,6 @@
 #pragma once
-#include "Vector.cuh"
-#include "Material.cuh"
+#include "Vector.hip"
+#include "Material.hip"
 #include "MaterialType.hpp"
 
 struct RawMaterialData {

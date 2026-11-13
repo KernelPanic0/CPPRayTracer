@@ -1,5 +1,5 @@
 #pragma once
-#include "Vector.cuh"
+#include "Vector.hip"
 
 #ifndef __HIPCC__
 #define __host__

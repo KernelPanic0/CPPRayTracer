@@ -1,10 +1,10 @@
 #pragma once
 #include "hip/hip_runtime.h"
-#include "Hittable.cuh"
-#include "Interval.cuh"
-#include "Material.cuh"
-#include "Ray.cuh"
-#include "Vector.cuh"
+#include "Hittable.hip"
+#include "Interval.hip"
+#include "Material.hip"
+#include "Ray.hip"
+#include "Vector.hip"
 #include "RawObjectData.hpp"
 
 class Sphere : public Hittable {

@@ -2,7 +2,7 @@
 #include "../../includes/imgui/imgui.h"
 #include "../../includes/imgui/imgui_impl_glfw.h"
 #include "../../includes/imgui/imgui_impl_opengl3.h"
-#include "../Engine/Raytracing/Renderer.hpp"
+#include "../Engine/Raytracing/Renderer.hip.h"
 #include "../GLFW/Window.hpp"
 #include "../includes/stb_image_write.h"
 #include "../misc/stb_image.h"
@@ -22,5 +22,5 @@ class UI {
 
   public:
     UI(std::shared_ptr<Window> &pWindow);
-    void Render(ImTextureID texture, std::unique_ptr<ActiveRenderer> &pRenderer, WorldData &pWorld);
+    void Render(ImTextureID texture, std::unique_ptr<Renderer> &pRenderer, WorldData &pWorld);
 };

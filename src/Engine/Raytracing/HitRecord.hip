@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
-#include "Vector.cuh"
-#include "Ray.cuh"
+#include "Vector.hip"
+#include "Ray.hip"
 
 #ifndef __HIPCC__
 #define __host__

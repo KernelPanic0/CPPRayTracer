@@ -1,9 +1,9 @@
-#include "Ray.cuh"
-#include "Sphere.cuh"
-#include "Triangle.cuh"
-#include "Hittable.cuh"
-#include "Interval.cuh"
-#include "HitRecord.cuh"
+#include "Ray.hip"
+#include "Sphere.hip"
+#include "Triangle.hip"
+#include "Hittable.hip"
+#include "Interval.hip"
+#include "HitRecord.hip"
 
 struct HittableList : Hittable {
   Sphere **spheres;

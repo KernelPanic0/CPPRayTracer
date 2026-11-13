@@ -4,9 +4,9 @@
 #include <string_view>
 #include <ranges>
 #include <sstream>
-#include "Raytracing/Renderer.hpp"
 #include <boost/algorithm/string.hpp>
 #include <iostream>
+#include "Raytracing/RawObjectData.hpp"
 #include <string>
 
 class OBJParser {

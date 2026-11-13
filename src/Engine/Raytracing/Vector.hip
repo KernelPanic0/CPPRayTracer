@@ -1,6 +1,6 @@
 #pragma once
 #include "hip/hip_runtime.h"
-#include "Constants.cuh"
+#include "Constants.hip"
 #include <math.h>
 #include <random>
 

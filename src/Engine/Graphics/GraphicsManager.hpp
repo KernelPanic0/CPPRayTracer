@@ -3,7 +3,7 @@
 #include "../../GLFW/Window.hpp"
 #include "../../UI/UI.hpp"
 #include "../../misc/stb_image.h"
-#include "../Raytracing/Renderer.hpp"
+#include "../Raytracing/Renderer.hip.h"
 #include "Buffers.hpp"
 #include "memory"
 #include <unordered_map>
@@ -18,7 +18,7 @@ class GraphicsManager {
     GraphicsManager();
     void InitTextures(int width, int height);
     ~GraphicsManager();
-    void RenderObjects(std::shared_ptr<Window> &window, std::unique_ptr<UI> &userInterface, std::unique_ptr<ActiveRenderer> &pRenderer, WorldData &pWorld);
+    void RenderObjects(std::shared_ptr<Window> &window, std::unique_ptr<UI> &userInterface, std::unique_ptr<Renderer> &pRenderer, WorldData &pWorld);
 
   private:
     GLuint outputBufferTexture;

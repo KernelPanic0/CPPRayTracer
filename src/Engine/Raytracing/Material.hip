@@ -1,7 +1,7 @@
 #pragma once
 #include "MaterialType.hpp"
-#include "HitRecord.cuh"
-#include "Ray.cuh"
+#include "HitRecord.hip"
+#include "Ray.hip"
 
 #ifndef __HIPCC__
 #define __host__

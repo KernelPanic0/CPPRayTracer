@@ -1,4 +1,4 @@
-#include "Renderer.cuh"
+#include "Renderer.hip.h"
 #include "hip/hip_runtime.h"
 
 // clang-format off
@@ -191,7 +191,7 @@ __global__ void FreeWorldKernel(Sphere **dSphereList, Triangle **dTriangleList, 
 
 // C++
 
-CudaRenderer::CudaRenderer(int width, int height) {
+Renderer::Renderer(int width, int height) {
     dFramebuffer = nullptr;
     dRandState = nullptr;
     dWorld = nullptr;
@@ -209,7 +209,7 @@ CudaRenderer::CudaRenderer(int width, int height) {
     Resize(width, height);
 }
 
-void CudaRenderer::RenderAccumulation() {
+void Renderer::RenderAccumulation() {
     hipMemset(dAccumulationBuffer, 0, camParams.imageWidth * camParams.imageHeight * sizeof(Triplet));
 
     isRendering = true;
@@ -227,7 +227,7 @@ void CudaRenderer::RenderAccumulation() {
     isRendering = false;
 }
 
-void CudaRenderer::RenderFrame() {
+void Renderer::RenderFrame() {
     isRendering = true;
     canvasEmpty = false;
     int bucketSize = 64;
@@ -278,7 +278,7 @@ void CudaRenderer::RenderFrame() {
     isRendering = false;
 }
 
-void CudaRenderer::Resize(int width, int height) {
+void Renderer::Resize(int width, int height) {
     camParams.imageWidth = width;
     camParams.imageHeight = height;
     sizeDirty = true;
@@ -312,12 +312,12 @@ void CudaRenderer::Resize(int width, int height) {
     hipDeviceSynchronize();
 }
 
-void CudaRenderer::RequestStop() {
+void Renderer::RequestStop() {
     // checkHipErrors(hipMemset(dStopRequested, true, sizeof(bool))); // implement later
     isRendering = false;
 }
 
-void CudaRenderer::UpdateWorld(const WorldData &hWorld) {
+void Renderer::UpdateWorld(const WorldData &hWorld) {
     FreeWorld();
     sphereCount = hWorld.sphereCount;
     triangleCount = hWorld.triangleCount;
@@ -344,7 +344,7 @@ void CudaRenderer::UpdateWorld(const WorldData &hWorld) {
     hipFree(dWorldTriangleData);
 }
 
-void CudaRenderer::FreeWorld() {
+void Renderer::FreeWorld() {
     size_t worldSize = sphereCount + triangleCount;
     if (dWorld && worldSize > 0) {
         FreeWorldKernel<<<1, 1>>>(dSphereList, dTriangleList, sphereCount, triangleCount, dWorld);
@@ -360,7 +360,7 @@ void CudaRenderer::FreeWorld() {
     }
 }
 
-CudaRenderer::~CudaRenderer() {
+Renderer::~Renderer() {
     FreeWorld();
     if (dFramebuffer) hipFree(dFramebuffer);
     if (dRandState) hipFree(dRandState);

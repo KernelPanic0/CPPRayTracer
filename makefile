@@ -3,22 +3,24 @@ GPU_CC := $(shell command -v hipcc 2>/dev/null || echo /opt/rocm/bin/hipcc)
 BACKEND ?= amd
 DEBUG ?= 0
 
-CUDA_SRC := ./src/Engine/Raytracing/Renderer.cu
+HIP_SRC := ./src/Engine/Raytracing/Renderer.hip
 
 ifeq ($(BACKEND),amd)
     export HIP_PLATFORM := amd
     GPU_ARCH := --offload-arch=gfx1031
     GPU_OPT := -Ofast
-    CUDA_LIBS := -lamdhip64 -lhiprand
+    GPU_LIBS := -lamdhip64 -lhiprand
     BACKEND_INC := -I/opt/rocm/include
     BACKEND_DEFINE := -D__HIP_PLATFORM_AMD__
+    GPU_LANG_FLAG := -x hip
 else
     export HIP_PLATFORM := nvidia
     GPU_ARCH := -gencode arch=compute_86,code=sm_86 # e.g. sm_86 = RTX 30xx
     GPU_OPT := -O3 # nvcc has no -Ofast
-    CUDA_LIBS := -lcudart -lcuda
+    GPU_LIBS := -lcudart -lcuda
     BACKEND_INC := -I/usr/local/cuda/include -I/opt/rocm/include
     BACKEND_DEFINE := -D__HIP_PLATFORM_NVIDIA__
+    GPU_LANG_FLAG := -x cu
 endif
 
 ifeq ($(DEBUG),1)
@@ -29,7 +31,7 @@ else
     GPU_CFLAGS := -std=c++20 $(GPU_OPT) $(BACKEND_INC) -I./includes -I./src/ $(GPU_ARCH) -MMD -MP $(BACKEND_DEFINE)
 endif
 
-LDFLAGS := -lglfw -lGL -ldl -lX11 -lpthread -lXrandr -lXi $(CUDA_LIBS)
+LDFLAGS := -lglfw -lGL -ldl -lX11 -lpthread -lXrandr -lXi $(GPU_LIBS)
 
 BUILD_DIR := ./build/$(BACKEND)
 TARGET := $(BUILD_DIR)/raytracer
@@ -59,16 +61,16 @@ OBJ := $(SRC:.cpp=.o)
 OBJ := $(OBJ:.c=.o)
 OBJ := $(patsubst %,$(BUILD_DIR)/%,$(OBJ))
 
-CUDA_OBJ := $(CUDA_SRC:.cu=.o)
-CUDA_OBJ := $(patsubst %,$(BUILD_DIR)/%,$(CUDA_OBJ))
+HIP_OBJ := $(HIP_SRC:.hip=.o)
+HIP_OBJ := $(patsubst %,$(BUILD_DIR)/%,$(HIP_OBJ))
 
 all: $(TARGET)
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
-$(TARGET): $(BUILD_DIR) $(OBJ) $(CUDA_OBJ)
-	$(GPU_CC) $(OBJ) $(CUDA_OBJ) -o $(TARGET) $(LDFLAGS)
+$(TARGET): $(BUILD_DIR) $(OBJ) $(HIP_OBJ)
+	$(GPU_CC) $(OBJ) $(HIP_OBJ) -o $(TARGET) $(LDFLAGS)
 
 $(BUILD_DIR)/%.o: %.cpp | $(BUILD_DIR)
 	mkdir -p $(dir $@)
@@ -78,9 +80,9 @@ $(BUILD_DIR)/%.o: %.c | $(BUILD_DIR)
 	mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-$(BUILD_DIR)/%.o: %.cu | $(BUILD_DIR)
+$(BUILD_DIR)/%.o: %.hip | $(BUILD_DIR)
 	mkdir -p $(dir $@)
-	$(GPU_CC) $(GPU_CFLAGS) -c $< -o $@
+	$(GPU_CC) $(GPU_CFLAGS) $(GPU_LANG_FLAG) -c $< -o $@
 
 clean:
 	rm -rf $(BUILD_DIR)
@@ -88,7 +90,7 @@ clean:
 run: all
 	./$(TARGET)
 
-DEPS := $(OBJ:.o=.d) $(CUDA_OBJ:.o=.d)
+DEPS := $(OBJ:.o=.d) $(HIP_OBJ:.o=.d)
 -include $(DEPS)
 
 .PHONY: all clean run

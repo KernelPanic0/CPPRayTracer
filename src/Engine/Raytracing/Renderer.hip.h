@@ -2,13 +2,13 @@
 #include "hip/hip_runtime.h"
 #include <iostream>
 #include <stdint.h>
-#include "Vector.cuh"
-#include "Hittable.cuh"
-#include "HittableList.cuh"
-#include "Sphere.cuh"
+#include "Vector.hip"
+#include "Hittable.hip"
+#include "HittableList.hip"
+#include "Sphere.hip"
 #include <float.h>
 #include "RawObjectData.hpp"
-#include "Triangle.cuh"
+#include "Triangle.hip"
 #include <thread>
 
 #ifndef __HIPCC__
@@ -38,7 +38,7 @@ struct RenderStatistics {
 };
 
 constexpr int numStreams = 8;
-class CudaRenderer {
+class Renderer {
   public:
     bool isRendering = false;
     bool canvasEmpty = true;
@@ -48,7 +48,7 @@ class CudaRenderer {
     RenderStatistics *renderStats = nullptr;
     float *progress = nullptr;
 
-    CudaRenderer(int width, int height);
+    Renderer(int width, int height);
     void RenderFrame();
     void RenderAccumulation();
     void Resize(int width, int height);
@@ -56,7 +56,7 @@ class CudaRenderer {
     void ClearOutput();
     void UpdateWorld(const WorldData &hWorld);
     void FreeWorld();
-    ~CudaRenderer();
+    ~Renderer();
 
   private:
     int numPixels;
